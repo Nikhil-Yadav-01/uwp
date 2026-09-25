@@ -62,9 +62,16 @@ class FailureResult<T> extends Result<T> {
 
 ---
 
-## 4. UI & Responsive Design Rules
+## 4. UI, Design Tokens & Dynamic Theming Rules
 
-* **Design Tokens:** Always utilize `AppColors`, `AppTypography`, and `AppSpacing` tokens. Never use hardcoded magic values (e.g., `SizedBox(height: 16)` $\rightarrow$ `SizedBox(height: AppSpacing.md)`).
+* **ZERO Hardcoded Colors / Magic Values (STRICT):**
+  - **NEVER** use raw `Color(0x...)` or Flutter `Colors.*` inline inside feature widgets, screens, custom components, or layouts.
+  - All colors must be resolved from centralized design tokens (`AppColors`), the active archetype theme (`Theme.of(context).colorScheme` / `ArchetypeThemeProfile`), or tokenized gradients (`AppGradients`).
+  - **Spacings & Sizes:** Never write raw pixel values like `SizedBox(height: 16)` or `EdgeInsets.all(12)`. Always use `AppSpacing`, `AppGap`, `AppPadding`, and `AppSizes` (e.g. `AppGap.md`, `AppPadding.screen`).
+  - **Radii & Shadows:** Always use `AppRadii` and `AppShadows`.
+  - **Typography:** Always use `AppTypography` or `Theme.of(context).textTheme`.
+* **Dynamic Archetype Theming:**
+  - Components must be designed to inherit colors dynamically from `Theme.of(context).colorScheme` so that switching industry archetypes automatically repaints the UI according to that vertical's environmental palette.
 * **Responsive Breakpoints:**
   - **Mobile:** $< 600\text{px}$ (Drawer navigation, vertical scrolling, bottom sheets).
   - **Tablet / Rugged PDA:** $600\text{px} - 1024\text{px}$ (Compact rail navigation, split master-detail view).

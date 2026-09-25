@@ -16,20 +16,22 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
     final currentArchetypeState = ref.watch(archetypeProvider);
     final activeArchetype = currentArchetypeState.archetype;
     final allArchetypes = ArchetypeRegistry.getAllArchetypes();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(
-          color: activeArchetype.brandColor.withValues(alpha: 0.4),
+          color: colorScheme.primary.withValues(alpha: 0.4),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: activeArchetype.brandColor.withValues(alpha: 0.08),
+            color: colorScheme.primary.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -38,17 +40,17 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Live Pulsing Indicator
+          // Live Pulsing Indicator with Archetype Environmental Icon
           Container(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: activeArchetype.brandColor.withValues(alpha: 0.15),
+              color: colorScheme.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               activeArchetype.icon,
               size: 14,
-              color: activeArchetype.brandColor,
+              color: colorScheme.primary,
             ),
           ),
           const SizedBox(width: 8),
@@ -65,7 +67,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                     Text(
                       'PROTOTYPE SHOWCASE',
                       style: AppTypography.caption.copyWith(
-                        color: activeArchetype.brandColor,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.w700,
                         fontSize: 9,
                         letterSpacing: 0.8,
@@ -90,22 +92,24 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                   ],
                 ),
                 PopupMenuButton<BusinessArchetypeType>(
-                  tooltip: 'Switch Business Vertical',
+                  tooltip: 'Switch Business Vertical & Environmental Theme',
                   initialValue: activeArchetype.type,
                   offset: const Offset(0, 32),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     side: BorderSide(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color: colorScheme.outline,
                     ),
                   ),
-                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                  color: colorScheme.surface,
                   onSelected: (type) {
                     ref.read(archetypeProvider.notifier).switchArchetype(type);
                   },
                   itemBuilder: (context) {
                     return allArchetypes.map((archetype) {
                       final isSelected = archetype.type == activeArchetype.type;
+                      final archColor = archetype.themeProfile.primary;
+
                       return PopupMenuItem<BusinessArchetypeType>(
                         value: archetype.type,
                         child: Row(
@@ -113,13 +117,13 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: archetype.brandColor.withValues(alpha: 0.15),
+                                color: archColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Icon(
                                 archetype.icon,
                                 size: 16,
-                                color: archetype.brandColor,
+                                color: archColor,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -127,22 +131,36 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    archetype.name,
-                                    style: AppTypography.bodyBold.copyWith(
-                                      color: isSelected
-                                          ? archetype.brandColor
-                                          : (isDark
-                                              ? AppColors.textPrimaryDark
-                                              : AppColors.textPrimaryLight),
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        archetype.name,
+                                        style: AppTypography.bodyBold.copyWith(
+                                          color: isSelected
+                                              ? archColor
+                                              : (isDark
+                                                  ? AppColors.textPrimaryDark
+                                                  : AppColors.textPrimaryLight),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '• ${archetype.themeProfile.environmentName}',
+                                        style: AppTypography.caption.copyWith(
+                                          color: archColor,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Text(
-                                    archetype.tagLine,
+                                    archetype.themeProfile.environmentDescription,
                                     style: AppTypography.caption.copyWith(
                                       color: isDark
                                           ? AppColors.textSecondaryDark
                                           : AppColors.textSecondaryLight,
+                                      fontSize: 11,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -154,7 +172,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                               Icon(
                                 Icons.check_rounded,
                                 size: 16,
-                                color: archetype.brandColor,
+                                color: archColor,
                               ),
                           ],
                         ),

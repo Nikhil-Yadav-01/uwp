@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/archetypes/archetype_registry.dart';
 import '../../../../core/archetypes/contracts/archetype_feature_handler.dart';
 import '../../../../core/archetypes/models/archetype_definition.dart';
+import '../../../../core/theme/models/archetype_theme_profile.dart';
 
 /// State containing the current active business archetype and its strategy handler
 class ArchetypeState {
@@ -57,3 +59,12 @@ class ArchetypeNotifier extends StateNotifier<ArchetypeState> {
 final archetypeProvider = StateNotifierProvider<ArchetypeNotifier, ArchetypeState>((ref) {
   return ArchetypeNotifier();
 });
+
+/// Provider for the active archetype's environmental theme profile
+final currentArchetypeThemeProvider = Provider<ArchetypeThemeProfile>((ref) {
+  return ref.watch(archetypeProvider.select((state) => state.archetype.themeProfile));
+});
+
+/// Theme mode provider (defaults to dark mode for enterprise ergonomics)
+final appThemeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+

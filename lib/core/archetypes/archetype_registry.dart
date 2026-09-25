@@ -9,6 +9,7 @@ import 'handlers/hardware_handler.dart';
 import 'handlers/healthcare_handler.dart';
 import 'models/archetype_definition.dart';
 import '../theme/app_colors.dart';
+import '../theme/archetypes/archetype_theme_registry.dart';
 
 /// Central registry managing all registered archetypes and their feature handlers.
 class ArchetypeRegistry {
@@ -25,7 +26,7 @@ class ArchetypeRegistry {
   };
 
   static final Map<BusinessArchetypeType, BusinessArchetype> _archetypes = {
-    BusinessArchetypeType.leatherAndTextiles: const BusinessArchetype(
+    BusinessArchetypeType.leatherAndTextiles: BusinessArchetype(
       type: BusinessArchetypeType.leatherAndTextiles,
       id: 'archetype_leather',
       name: 'Leather & Textiles',
@@ -34,20 +35,21 @@ class ArchetypeRegistry {
       icon: Icons.layers_outlined,
       brandColor: AppColors.leatherBadge,
       primaryUom: 'sq ft',
-      supportedUoms: ['sq ft', 'sq m', 'hides', 'rolls', 'kg'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['sq ft', 'sq m', 'hides', 'rolls', 'kg'],
+      capabilities: const ArchetypeCapabilities(
         supportsAreaDimensions: true,
         supportsScrapTracking: true,
         supportsWeightScale: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'tannery_origin', label: 'Tannery / Origin', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'dye_lot', label: 'Dye Lot Number', dataType: FieldDataType.text, isRequired: true),
         CustomFieldDefinition(key: 'grade', label: 'Quality Grade', dataType: FieldDataType.dropdown, options: ['Grade A (Prime)', 'Grade B (Standard)', 'Grade C (Utility)', 'Remnant']),
         CustomFieldDefinition(key: 'thickness_oz', label: 'Thickness (oz / mm)', dataType: FieldDataType.text, unit: 'oz'),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.leatherAndTextiles).profile,
     ),
-    BusinessArchetypeType.groceryAndPerishables: const BusinessArchetype(
+    BusinessArchetypeType.groceryAndPerishables: BusinessArchetype(
       type: BusinessArchetypeType.groceryAndPerishables,
       id: 'archetype_grocery',
       name: 'Grocery & Perishables',
@@ -56,19 +58,20 @@ class ArchetypeRegistry {
       icon: Icons.shopping_basket_outlined,
       brandColor: AppColors.groceryBadge,
       primaryUom: 'kg',
-      supportedUoms: ['kg', 'g', 'cartons', 'pallets', 'liters', 'bottles'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['kg', 'g', 'cartons', 'pallets', 'liters', 'bottles'],
+      capabilities: const ArchetypeCapabilities(
         supportsBatchExpiry: true,
         supportsColdChain: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'batch_no', label: 'Batch / Lot Number', dataType: FieldDataType.text, isRequired: true),
         CustomFieldDefinition(key: 'expiry_date', label: 'Expiration Date', dataType: FieldDataType.date, isRequired: true),
         CustomFieldDefinition(key: 'storage_zone', label: 'Storage Temperature Zone', dataType: FieldDataType.dropdown, options: ['Ambient (+20°C)', 'Chilled (+4°C)', 'Deep Freeze (-20°C)']),
         CustomFieldDefinition(key: 'origin', label: 'Farm / Harvest Origin', dataType: FieldDataType.text),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.groceryAndPerishables).profile,
     ),
-    BusinessArchetypeType.electronicsAndTech: const BusinessArchetype(
+    BusinessArchetypeType.electronicsAndTech: BusinessArchetype(
       type: BusinessArchetypeType.electronicsAndTech,
       id: 'archetype_electronics',
       name: 'Electronics & Gadgets',
@@ -77,19 +80,20 @@ class ArchetypeRegistry {
       icon: Icons.phone_android_outlined,
       brandColor: AppColors.electronicsBadge,
       primaryUom: 'units',
-      supportedUoms: ['units', 'kits', 'master_cartons'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['units', 'kits', 'master_cartons'],
+      capabilities: const ArchetypeCapabilities(
         supportsSerialTracking: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'serial_no', label: 'Serial Number (S/N)', dataType: FieldDataType.text, isRequired: true),
         CustomFieldDefinition(key: 'imei_1', label: 'Primary IMEI', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'imei_2', label: 'Secondary IMEI', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'condition', label: 'Condition State', dataType: FieldDataType.dropdown, options: ['Brand New (Sealed)', 'Refurbished Grade A+', 'Refurbished Grade B', 'RMA / Defective']),
         CustomFieldDefinition(key: 'warranty_months', label: 'Warranty Duration', dataType: FieldDataType.text),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.electronicsAndTech).profile,
     ),
-    BusinessArchetypeType.barsAndHospitality: const BusinessArchetype(
+    BusinessArchetypeType.barsAndHospitality: BusinessArchetype(
       type: BusinessArchetypeType.barsAndHospitality,
       id: 'archetype_hospitality',
       name: 'Bars & Restaurants',
@@ -98,20 +102,21 @@ class ArchetypeRegistry {
       icon: Icons.wine_bar_outlined,
       brandColor: AppColors.hospitalityBadge,
       primaryUom: 'ml',
-      supportedUoms: ['ml', 'liters', 'bottles', 'kegs (50L)', 'servings'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['ml', 'liters', 'bottles', 'kegs (50L)', 'servings'],
+      capabilities: const ArchetypeCapabilities(
         supportsRecipeBOM: true,
         supportsWeightScale: true,
         supportsScrapTracking: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'abv_percent', label: 'Alcohol by Volume (ABV %)', dataType: FieldDataType.number, unit: '%'),
         CustomFieldDefinition(key: 'volume_per_bottle_ml', label: 'Bottle Volume', dataType: FieldDataType.number, unit: 'ml'),
         CustomFieldDefinition(key: 'standard_pour_ml', label: 'Standard Pour Size', dataType: FieldDataType.number, unit: 'ml'),
         CustomFieldDefinition(key: 'vintage', label: 'Vintage / Release Year', dataType: FieldDataType.text),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.barsAndHospitality).profile,
     ),
-    BusinessArchetypeType.fashionAndApparel: const BusinessArchetype(
+    BusinessArchetypeType.fashionAndApparel: BusinessArchetype(
       type: BusinessArchetypeType.fashionAndApparel,
       id: 'archetype_fashion',
       name: 'Fashion & Apparel',
@@ -120,18 +125,19 @@ class ArchetypeRegistry {
       icon: Icons.checkroom_outlined,
       brandColor: AppColors.fashionBadge,
       primaryUom: 'pcs',
-      supportedUoms: ['pcs', 'pre-packs', 'pairs', 'sets'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['pcs', 'pre-packs', 'pairs', 'sets'],
+      capabilities: const ArchetypeCapabilities(
         supportsMatrixVariants: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'season', label: 'Fashion Season', dataType: FieldDataType.dropdown, options: ['SS26', 'FW26', 'Core Permanent']),
         CustomFieldDefinition(key: 'size', label: 'Size', dataType: FieldDataType.dropdown, options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Custom']),
         CustomFieldDefinition(key: 'color', label: 'Color Variant', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'fabric_composition', label: 'Fabric / Material Composition', dataType: FieldDataType.text),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.fashionAndApparel).profile,
     ),
-    BusinessArchetypeType.hardwareAndParts: const BusinessArchetype(
+    BusinessArchetypeType.hardwareAndParts: BusinessArchetype(
       type: BusinessArchetypeType.hardwareAndParts,
       id: 'archetype_hardware',
       name: 'Hardware & Industrial',
@@ -140,18 +146,19 @@ class ArchetypeRegistry {
       icon: Icons.build_outlined,
       brandColor: AppColors.hardwareBadge,
       primaryUom: 'pcs',
-      supportedUoms: ['pcs', 'sets', 'boxes', 'crates', 'kg'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['pcs', 'sets', 'boxes', 'crates', 'kg'],
+      capabilities: const ArchetypeCapabilities(
         supportsWeightScale: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'oem_part_number', label: 'OEM Part Number', dataType: FieldDataType.text, isRequired: true),
         CustomFieldDefinition(key: 'bin_location', label: 'High-Density Bin Location', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'vehicle_fitment', label: 'Vehicle / Machine Fitment', dataType: FieldDataType.text),
         CustomFieldDefinition(key: 'is_hazardous', label: 'HAZMAT Classified', dataType: FieldDataType.boolean),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.hardwareAndParts).profile,
     ),
-    BusinessArchetypeType.healthcareAndPharma: const BusinessArchetype(
+    BusinessArchetypeType.healthcareAndPharma: BusinessArchetype(
       type: BusinessArchetypeType.healthcareAndPharma,
       id: 'archetype_healthcare',
       name: 'Healthcare & Hospital Supply',
@@ -160,19 +167,20 @@ class ArchetypeRegistry {
       icon: Icons.medical_services_outlined,
       brandColor: AppColors.healthcareBadge,
       primaryUom: 'vials',
-      supportedUoms: ['vials', 'ampoules', 'boxes', 'kits', 'units'],
-      capabilities: ArchetypeCapabilities(
+      supportedUoms: const ['vials', 'ampoules', 'boxes', 'kits', 'units'],
+      capabilities: const ArchetypeCapabilities(
         supportsBatchExpiry: true,
         supportsColdChain: true,
         supportsControlledVault: true,
         supportsWardAllocation: true,
       ),
-      customFields: [
+      customFields: const [
         CustomFieldDefinition(key: 'lot_no', label: 'Pharma Lot / Batch No', dataType: FieldDataType.text, isRequired: true),
         CustomFieldDefinition(key: 'expiry_date', label: 'Medical Expiration Date', dataType: FieldDataType.date, isRequired: true),
         CustomFieldDefinition(key: 'schedule_class', label: 'DEA / Drug Schedule', dataType: FieldDataType.dropdown, options: ['Schedule II (Controlled)', 'Schedule IV', 'Non-Controlled Rx', 'OTC / Supply']),
         CustomFieldDefinition(key: 'allocated_ward', label: 'Assigned Ward / Department', dataType: FieldDataType.text),
       ],
+      themeProfile: ArchetypeThemeRegistry.getStrategy(BusinessArchetypeType.healthcareAndPharma).profile,
     ),
   };
 

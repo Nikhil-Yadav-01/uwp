@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/models/archetype_theme_profile.dart';
 
 /// Supported industry archetypes.
 enum BusinessArchetypeType {
@@ -106,6 +107,7 @@ class BusinessArchetype {
   final List<String> supportedUoms;
   final ArchetypeCapabilities capabilities;
   final List<CustomFieldDefinition> customFields;
+  final ArchetypeThemeProfile themeProfile;
 
   const BusinessArchetype({
     required this.type,
@@ -119,5 +121,6 @@ class BusinessArchetype {
     required this.supportedUoms,
     required this.capabilities,
     required this.customFields,
+    required this.themeProfile,
   });
 }
