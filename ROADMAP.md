@@ -15,9 +15,9 @@ gantt
     section Phase 3
     Inbound, QC & Outbound Fulfillment  :done,    p3, after p2, 5d
     section Phase 4
-    Hardware Bridge & Scanning Engine   :active,  p4, after p3, 4d
+    Hardware Bridge & Scanning Engine   :done,    p4, after p3, 4d
     section Phase 5
-    2D Digital Twin & Advanced AI       :         p5, after p4, 5d
+    2D Digital Twin & Advanced AI       :active,  p5, after p4, 5d
     section Phase 6
     Desktop Grid & Multi-Platform Launch:         p6, after p5, 4d
 ```
@@ -62,11 +62,13 @@ gantt
 - [x] 4-Tab Responsive Inbound Dashboard (`InboundScreen`) and Outbound Fulfillment Hub (`OutboundScreen`).
 - [x] Comprehensive test suite covering directed putaway, FEFO wave optimization, and packing verification.
 
-### 🔲 Phase 4: Hardware Bridge & Multi-Barcode Scanner
-- [ ] Camera Multi-Barcode AR Batch Scanner (ML Kit) with bounding box overlays.
-- [ ] Zebra DataWedge & Honeywell Android Broadcast Receiver bridge for laser PDAs.
-- [ ] Bluetooth & Network Thermal Printer Engine (ESC/POS, ZPL, TSPL label formats).
-- [ ] BLE & Serial COM Scale Driver for auto-capturing scrap/roll/freight weight.
+### ✅ Phase 4: Hardware Bridge & Multi-Barcode Scanner
+- [x] Camera Multi-Barcode AR Batch Scanner (ML Kit) with bounding box overlays and 1.2s debounce deduplication (`MultiBarcodeBatchEngine`).
+- [x] Zebra DataWedge & Honeywell Android Broadcast Receiver bridge for laser PDAs (`ZebraDataWedgeBridge`).
+- [x] Bluetooth, USB COM & Network Thermal Printer Engine supporting ESC/POS receipts, 4x6 ZPL shipping labels, 3x1 bin tags, and Schedule II narcotics safety tags (`ZplTemplateGenerator`, `EscPosTemplateGenerator`, `MockThermalPrinterDriver`).
+- [x] BLE & Serial COM Scale Driver with continuous weight streaming, tare/zero calibration, fastener piece counter, and leather area calculator (`MockWeighingScaleDriver`, `PieceCounterCalculator`).
+- [x] 4-Tab Industrial Hardware Studio (`ScannerScreen`) with AR Viewfinder, Thermal Printer Lab, Scale Gauge, and PDA Configuration.
+- [x] Comprehensive test suite for hardware scanning, printing, and digital scale calculation.
 
 ### 🔲 Phase 5: Digital Twin Floorplan, Voice Picking & Advanced Innovations
 - [ ] Interactive 2D Warehouse Floorplan Canvas (draw walls, aisles, racks, loading docks).
