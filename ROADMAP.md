@@ -13,9 +13,9 @@ gantt
     section Phase 2
     Master Catalog & Dynamic Schema     :done,    p2, after p1, 4d
     section Phase 3
-    Inbound, QC & Outbound Fulfillment  :active,  p3, after p2, 5d
+    Inbound, QC & Outbound Fulfillment  :done,    p3, after p2, 5d
     section Phase 4
-    Hardware Bridge & Scanning Engine   :         p4, after p3, 4d
+    Hardware Bridge & Scanning Engine   :active,  p4, after p3, 4d
     section Phase 5
     2D Digital Twin & Advanced AI       :         p5, after p4, 5d
     section Phase 6
@@ -48,17 +48,19 @@ gantt
 - [x] 5-Tab dynamic Product Form (`ProductFormScreen`) and interactive Product Detail Modal with custom attribute chips.
 - [x] Comprehensive test suite for all Phase 2 domain calculation engines & wrappers.
 
-### 🔲 Phase 3: Inbound, QC & Outbound Fulfillment
-- [ ] **Inbound:**
-  - [ ] Purchase Order (PO) creation, tracking, and status pipeline.
-  - [ ] Goods Receipt Note (GRN) scanning intake.
-  - [ ] Quality Control (QC) inspection gate with photo capture.
-  - [ ] Directed Putaway suggestion engine (Aisle $\rightarrow$ Rack $\rightarrow$ Shelf $\rightarrow$ Bin).
-- [ ] **Outbound:**
-  - [ ] Sales Order (SO) intake and validation.
-  - [ ] Intelligent Picking Engine (Single, Wave, Batch, and Zone Picking).
-  - [ ] Packing Station barcode verification scan.
-  - [ ] Shipping label generator (ZPL / PDF preview) and packing manifest.
+### ✅ Phase 3: Inbound, QC & Outbound Fulfillment
+- [x] **Inbound Stream:**
+  - [x] Purchase Order (PO) lifecycle, tracking, and status pipeline (`PurchaseOrder`, `PurchaseOrderItem`).
+  - [x] Goods Receipt Note (GRN) dock scanning intake.
+  - [x] Quality Control (QC) inspection gate (`QcInspectionReport`) with defect logger and dual-signoff witness verification for healthcare narcotics/hazmat.
+  - [x] Directed Putaway engine (`DirectedPutawayEngine`) with archetype-aware zone mapping (Vault, Cold room, Flammable, Hanging, Roll racks).
+- [x] **Outbound Stream:**
+  - [x] Sales Order (SO) intake, allocation, and customer/hospital ward prioritization (`SalesOrder`, `SalesOrderItem`).
+  - [x] Intelligent Wave & Batch Picking Engine (`WavePickingOptimizerEngine`) with FEFO sort and shortest walking path sequencing.
+  - [x] Packing Station (`PackingSession`) with live barcode verification scanning simulator.
+  - [x] Shipping Manifest generation with 4x6 Thermal ZPL/PDF preview modal and B2B Magic Tracking Link.
+- [x] 4-Tab Responsive Inbound Dashboard (`InboundScreen`) and Outbound Fulfillment Hub (`OutboundScreen`).
+- [x] Comprehensive test suite covering directed putaway, FEFO wave optimization, and packing verification.
 
 ### 🔲 Phase 4: Hardware Bridge & Multi-Barcode Scanner
 - [ ] Camera Multi-Barcode AR Batch Scanner (ML Kit) with bounding box overlays.

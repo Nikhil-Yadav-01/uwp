@@ -48,6 +48,11 @@ class AppTypography {
         fontWeight: FontWeight.w500,
       );
 
+  static TextStyle get captionBold => GoogleFonts.inter(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+      );
+
   static TextStyle get monospace => GoogleFonts.jetBrainsMono(
         fontSize: 12,
         fontWeight: FontWeight.w500,

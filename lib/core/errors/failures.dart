@@ -18,6 +18,10 @@ class CacheFailure extends AppFailure {
   const CacheFailure(super.message, {super.code, super.details});
 }
 
+class DatabaseFailure extends AppFailure {
+  const DatabaseFailure(super.message, {super.code, super.details});
+}
+
 class ValidationFailure extends AppFailure {
   final Map<String, String>? fieldErrors;
   const ValidationFailure(super.message, {this.fieldErrors, super.code, super.details});
