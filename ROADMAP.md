@@ -11,9 +11,9 @@ gantt
     section Phase 1
     Project & Archetype Foundation       :done,    p1, 2026-09-25, 3d
     section Phase 2
-    Master Catalog & Dynamic Schema     :active,  p2, after p1, 4d
+    Master Catalog & Dynamic Schema     :done,    p2, after p1, 4d
     section Phase 3
-    Inbound, QC & Outbound Fulfillment  :         p3, after p2, 5d
+    Inbound, QC & Outbound Fulfillment  :active,  p3, after p2, 5d
     section Phase 4
     Hardware Bridge & Scanning Engine   :         p4, after p3, 4d
     section Phase 5
@@ -28,20 +28,25 @@ gantt
 
 ### ✅ Phase 1: Foundation, Architecture & Archetype Engine
 - [x] Project Documentation Suite (`README`, `OVERVIEW`, `ARCHITECTURE`, `RULES`, `RBAC`, `ROADMAP`).
-- [ ] Initialize Flutter multi-platform workspace (`com.rudraksha.warehouse`).
-- [ ] Configure `pubspec.yaml` with Riverpod, GoRouter, Drift, ML Kit, Thermal Printer, Icons.
-- [ ] Implement Core Dynamic Archetype Schema Engine (Leather, Grocery, Electronics, Hospitality/Bars, Fashion, Hardware).
-- [ ] Establish `Result<T>` functional error handling & AppFailure hierarchy.
-- [ ] Build Design System (Tokens, AppColors, AppTypography, ResponsiveBreakpoints).
-- [ ] Build Shell Navigation (Desktop Sidebar + Mobile Drawer) with GoRouter.
+- [x] Initialize Flutter multi-platform workspace (`com.rudraksha.warehouse`).
+- [x] Configure `pubspec.yaml` with Riverpod, GoRouter, Drift, ML Kit, Thermal Printer, Icons.
+- [x] Implement Core Dynamic Archetype Schema Engine (Leather, Grocery, Electronics, Hospitality/Bars, Fashion, Hardware, Healthcare/Pharma).
+- [x] Strategy-pattern dynamic theming engine with environmental ergonomic palettes (`IArchetypeThemeStrategy`).
+- [x] Establish `Result<T>` functional error handling & AppFailure hierarchy.
+- [x] Build Design System (Tokens, AppColors, AppTypography, ResponsiveBreakpoints).
+- [x] Build Shell Navigation (Desktop Sidebar + Mobile Drawer) with GoRouter.
+- [x] Live Dynamic 1-Click Showcase Demo Bar (`DemoArchetypeSwitcherBar`).
 
-### 🔲 Phase 2: Master Data, Product Catalog & Dynamic Schema
-- [ ] Abstract `IProductRepository`, `ICategoryRepository`, `IUomRepository`.
-- [ ] Product models with dynamic polymorphic attributes (sq ft for leather, ABV for bars, IMEI for tech, expiry for grocery).
-- [ ] Multi-Variant Matrix Generator ($\text{Size} \times \text{Color} \times \text{Material}$).
-- [ ] Recipe / Bill of Materials (BOM) manager for Hospitality/Cocktails/Kits.
-- [ ] Unit of Measure (UOM) conversion calculation engine.
-- [ ] In-Memory & Drift local data source implementations.
+### ✅ Phase 2: Master Data, Product Catalog & Dynamic Schema
+- [x] Abstract `IProductRepository`, `ICategoryRepository`, `IUomRepository`.
+- [x] Universal `Product` entity with dynamic polymorphic `customAttributes` and validation rules.
+- [x] Typed Wrapper/Decorator Pattern for compile-time safe vertical models (`LeatherProductWrapper`, `GroceryProductWrapper`, `ElectronicsProductWrapper`, `HospitalityProductWrapper`, `FashionProductWrapper`, `HardwareProductWrapper`, `HealthcareProductWrapper`).
+- [x] Multi-Variant Matrix Generator ($\text{Size} \times \text{Color} \times \text{Material}$) with Cartesian SKU builder.
+- [x] Recipe / Bill of Materials (BOM) composer engine with component cost rollup and stock bottleneck limits.
+- [x] Unit of Measure (UOM) conversion calculation engine (Area, Weight, Volume, Length, Count & Packaging).
+- [x] In-Memory / Drift pre-seeded repository with comprehensive demo catalog across all 7 archetypes.
+- [x] 5-Tab dynamic Product Form (`ProductFormScreen`) and interactive Product Detail Modal with custom attribute chips.
+- [x] Comprehensive test suite for all Phase 2 domain calculation engines & wrappers.
 
 ### 🔲 Phase 3: Inbound, QC & Outbound Fulfillment
 - [ ] **Inbound:**

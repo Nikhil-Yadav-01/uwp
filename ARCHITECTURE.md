@@ -164,6 +164,7 @@ enum BusinessArchetypeType {
   barsAndHospitality,
   fashionAndApparel,
   generalHardware,
+  healthcareAndPharma,
   custom,
 }
 

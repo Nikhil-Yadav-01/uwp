@@ -74,6 +74,12 @@ Universal WMS employs a dual-tiered authorization model:
 * `perm:pos:apply_discount` — Apply custom item or cart-level discounts.
 * `perm:pos:refund` — Process customer refunds and return stock.
 
+### Category: Regulated & Healthcare Compliance (`perm:compliance:*`)
+* `perm:compliance:narcotics_vault_access` — Unlock and manage high-security narcotics and Schedule II–V drug storage.
+* `perm:compliance:dual_signoff_witness` — Act as secondary authorized witness for controlled substance dispensing & disposal.
+* `perm:compliance:quarantine_override` — Place or release lots from QC / Expiry / Recall quarantine holds.
+* `perm:compliance:ward_allocation` — Allocate sub-stock to hospital wards, crash carts, and emergency departments.
+
 ### Category: Administration & Settings (`perm:admin:*`)
 * `perm:admin:manage_users` — Create, edit, and assign roles to users.
 * `perm:admin:manage_roles` — Customize granular permission sets for roles.
@@ -85,20 +91,22 @@ Universal WMS employs a dual-tiered authorization model:
 
 ## 4. Role vs. Permission Matrix
 
-| Permission Key | Super Admin | Warehouse Mgr | Picker / Packer | QC Inspector | Auditor | POS Clerk | B2B Client |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `perm:catalog:view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ (Catalog Only) |
-| `perm:catalog:edit` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `perm:catalog:view_cost` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `perm:inbound:receive` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `perm:inbound:qc_inspect`| ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `perm:inbound:putaway` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `perm:outbound:pick` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `perm:outbound:pack` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `perm:inventory:adjust` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `perm:inventory:audit` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| `perm:pos:checkout` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| `perm:admin:system` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Permission Key | Super Admin | Warehouse Mgr | Picker / Packer | QC Inspector | Auditor | POS Clerk | Pharmacist / Nurse | B2B Client |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `perm:catalog:view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ (Catalog Only) |
+| `perm:catalog:edit` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `perm:catalog:view_cost` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `perm:inbound:receive` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:inbound:qc_inspect`| ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| `perm:inbound:putaway` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:outbound:pick` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:outbound:pack` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:inventory:adjust` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `perm:inventory:audit` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ |
+| `perm:compliance:vault` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:compliance:dual_signoff` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `perm:pos:checkout` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `perm:admin:system` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ---
 

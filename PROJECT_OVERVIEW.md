@@ -11,14 +11,14 @@ Universal WMS is designed to replace single-purpose, rigid inventory application
 ## 2. Universal Business Archetype Specifications
 
 ```
-                               ┌─────────────────────────────┐
-                               │ Business Archetype Registry │
-                               └──────────────┬──────────────┘
-         ┌──────────────────┬─────────────────┼──────────────────┬──────────────────┐
-         ▼                  ▼                 ▼                  ▼                  ▼
-┌─────────────────┐ ┌───────────────┐ ┌────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ Leather & Hides │ │Grocery & Foods│ │  Electronics   │ │Bars/Restaurants │ │Fashion & Retail │
-└─────────────────┘ └───────────────┘ └────────────────┘ └─────────────────┘ └─────────────────┘
+                                       ┌─────────────────────────────┐
+                                       │ Business Archetype Registry │
+                                       └──────────────┬──────────────┘
+         ┌──────────────────┬─────────────────┼──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+         ▼                  ▼                 ▼                  ▼                  ▼                  ▼                  ▼
+┌─────────────────┐ ┌───────────────┐ ┌────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Leather & Hides │ │Grocery & Foods│ │  Electronics   │ │Bars/Restaurants │ │Fashion & Retail │ │ Hardware & Auto │ │Healthcare/Pharma│
+└─────────────────┘ └───────────────┘ └────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
 ### Archetype 1: Leather, Hides & Fabric Stores
@@ -54,6 +54,12 @@ Universal WMS is designed to replace single-purpose, rigid inventory application
 * **Primary Dimensions:** Pieces, Sets, Weight, Fastener Packs.
 * **Specific Metadata:** OEM Part Number, Manufacturer Code, Bin Weight Capacity, Hazardous Material (HAZMAT) classification.
 * **Workflows:** High-density bin locator, cross-reference part lookup, reorder threshold triggers.
+
+### Archetype 7: Healthcare, Pharmaceuticals, Hospitals & Nursing Homes
+* **Primary Dimensions:** Dosage Units (tablets, capsules, vials, ampoules), Blister Packs, Strips, Boxes, Syringes, IV Bags ($\text{ml}$, $\text{L}$).
+* **Specific Metadata:** NDC / Drug License Number, Active Ingredient (API), Batch / Lot Number, Expiration Date, Controlled Substance Schedule (Schedule II–V Narcotics, Rx Only, OTC), Cold-Chain Temperature Band ($2^\circ\text{C}-8^\circ\text{C}$, $-20^\circ\text{C}$ Cryo, Ambient).
+* **Compliance & Security:** Dual-signoff witness verification for high-risk narcotics vaults, mandatory FEFO picking, batch recall quarantine triggers.
+* **Hospital & Nursing Home Allocations:** Ward/Department sub-stock replenishments (ICU, ER, Operation Theatre, Crash Carts, Geriatric Care Stations).
 
 ---
 
@@ -97,4 +103,5 @@ sequenceDiagram
 4. **Packing & QC Inspector:** Packing scan station, damage and photo evidence recording, box sealing, label printing.
 5. **Inventory Auditor:** Blind/scan cycle counting, variance reporting, shrinkage investigation.
 6. **Store Cashier / POS Clerk:** Fast checkout, inventory lookups, instant receipt printing, table/order billing.
-7. **B2B Wholesale Client / Vendor:** Magic link order tracking, packing photo inspection, verified packing list downloads.
+7. **Clinical Pharmacist / Head Nurse:** Narcotics double-signoff, ward sub-inventory allocations, crash-cart expiry verification.
+8. **B2B Wholesale Client / Vendor:** Magic link order tracking, packing photo inspection, verified packing list downloads.

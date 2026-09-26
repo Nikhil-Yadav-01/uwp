@@ -11,7 +11,7 @@
 
 ## 🌟 Executive Summary
 
-**Universal WMS** is an enterprise-grade, cross-platform stock and warehouse management solution designed to morph dynamically into any industry vertical without custom code changes. Whether managing raw materials like **Leather Hides & Textiles**, expiry-sensitive **Grocery & Cold-Chain Goods**, serial-tracked **Electronics & Mobile Gadgets**, batch-metered **Bars, Restaurants & Cafes**, or multi-variant **Retail & Fashion Apparel**, Universal WMS adapts its data schemas, unit conversions, and validation workflows seamlessly.
+**Universal WMS** is an enterprise-grade, cross-platform stock and warehouse management solution designed to morph dynamically into any industry vertical without custom code changes. Whether managing raw materials like **Leather Hides & Textiles**, expiry-sensitive **Grocery & Cold-Chain Goods**, serial-tracked **Electronics & Mobile Gadgets**, batch-metered **Bars, Restaurants & Cafes**, multi-variant **Retail & Fashion Apparel**, heavy-duty **Hardware & Industrial Parts**, or strictly regulated **Healthcare, Pharmaceuticals, Hospitals & Nursing Homes**, Universal WMS adapts its data schemas, unit conversions, UI theme ergonomics, and validation workflows seamlessly.
 
 ---
 
