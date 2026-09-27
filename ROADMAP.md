@@ -16,8 +16,10 @@ gantt
     Inbound, QC & Outbound Fulfillment  :done,    p3, after p2, 5d
     section Phase 4
     Hardware Bridge & Scanning Engine   :done,    p4, after p3, 4d
+    section Phase 4.1
+    Stock Ledger & Core WMS Ops         :done,    p4_1, after p4, 4d
     section Phase 5
-    2D Digital Twin & Advanced AI       :active,  p5, after p4, 5d
+    2D Digital Twin & Advanced AI       :active,  p5, after p4_1, 5d
     section Phase 6
     Desktop Grid & Multi-Platform Launch:         p6, after p5, 4d
 ```
@@ -69,6 +71,24 @@ gantt
 - [x] BLE & Serial COM Scale Driver with continuous weight streaming, tare/zero calibration, fastener piece counter, and leather area calculator (`MockWeighingScaleDriver`, `PieceCounterCalculator`).
 - [x] 4-Tab Industrial Hardware Studio (`ScannerScreen`) with AR Viewfinder, Thermal Printer Lab, Scale Gauge, and PDA Configuration.
 - [x] Comprehensive test suite for hardware scanning, printing, and digital scale calculation.
+
+### ✅ Phase 4.1: Stock Ledger, Transfers, Adjustments & Prototype Completion
+- [x] **Stock Ledger & Movement History (`InventoryTransactions`):**
+  - [x] Stock movement audit log for every transaction (`PURCHASE_RECEIPT`, `PUTAWAY`, `SALE`, `PICK`, `TRANSFER_OUT`, `TRANSFER_IN`, `ADJUSTMENT_IN`, `DAMAGE`).
+  - [x] Granular inventory status calculation per SKU (`Available`, `Reserved`, `Picked`, `Damaged`, `Blocked`, `InTransit`).
+  - [x] Dedicated Stock Ledger / Audit Trail tab in Dashboard & Inventory screens (`InventoryLedgerScreen`).
+- [x] **Inter-Warehouse Stock Transfers:**
+  - [x] Inter-warehouse transfer lifecycle (Transfer Request $\rightarrow$ Approval $\rightarrow$ Pick $\rightarrow$ In-Transit $\rightarrow$ Receiving $\rightarrow$ Putaway with `StockTransferModal`).
+- [x] **Stock Adjustments & Discrepancies:**
+  - [x] Adjustment logging with reason codes (Damaged, Expired, Missing, Cycle Count discrepancy with `StockAdjustmentModal`).
+- [x] **Master Data Management:**
+  - [x] Warehouse hierarchy master (Warehouse $\rightarrow$ Zone $\rightarrow$ Rack $\rightarrow$ Shelf $\rightarrow$ Bin with `InMemoryMasterDataRepository`).
+  - [x] Supplier and Customer directory views.
+- [x] **POS & Counter Checkout:**
+  - [x] Reactive Cart state management with barcode scan-to-cart, payment tenders, and ESC/POS thermal receipt generation (`PosCartNotifier`).
+- [x] **Web & Cross-Platform Readiness:**
+  - [x] Web camera scanner fallback & simulated quick scans in `PosScreen`.
+  - [x] Interactive User Role / Persona Switcher (RBAC Live Demo with `userRoleProvider`).
 
 ### 🔲 Phase 5: Digital Twin Floorplan, Voice Picking & Advanced Innovations
 - [ ] Interactive 2D Warehouse Floorplan Canvas (draw walls, aisles, racks, loading docks).

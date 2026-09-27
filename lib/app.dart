@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'features/archetypes/presentation/controllers/archetype_controller.dart';
 import 'features/dashboard/presentation/views/dynamic_dashboard_screen.dart';
 import 'features/inbound/presentation/views/inbound_screen.dart';
+import 'features/inventory_ledger/presentation/views/inventory_ledger_screen.dart';
 import 'features/outbound/presentation/views/outbound_screen.dart';
 import 'features/pos_billing/presentation/views/pos_screen.dart';
 import 'features/products/presentation/views/products_catalog_screen.dart';
@@ -45,6 +46,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/outbound',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: OutboundScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/ledger',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: InventoryLedgerScreen(),
             ),
           ),
           GoRoute(

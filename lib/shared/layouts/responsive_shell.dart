@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../features/archetypes/presentation/controllers/archetype_controller.dart';
+import '../../features/rbac/presentation/controllers/user_role_controller.dart';
 import '../widgets/demo_archetype_switcher_bar.dart';
 
 class NavigationItem {
@@ -24,6 +25,7 @@ const List<NavigationItem> kNavigationItems = [
   NavigationItem(label: 'Inventory Catalog', icon: Icons.inventory_2_outlined, route: '/products'),
   NavigationItem(label: 'Inbound / PO', icon: Icons.local_shipping_outlined, route: '/inbound'),
   NavigationItem(label: 'Outbound / Waves', icon: Icons.outbox_outlined, route: '/outbound'),
+  NavigationItem(label: 'Stock Ledger', icon: Icons.receipt_long_outlined, route: '/ledger'),
   NavigationItem(label: 'Floorplan 2D', icon: Icons.map_outlined, route: '/floorplan'),
   NavigationItem(label: 'Barcode & AR', icon: Icons.qr_code_scanner_outlined, route: '/scanner'),
   NavigationItem(label: 'POS / Counter', icon: Icons.point_of_sale_outlined, route: '/pos'),
@@ -43,6 +45,8 @@ class ResponsiveShell extends ConsumerWidget {
     final isDesktop = context.isDesktop;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentRoute = GoRouterState.of(context).uri.path;
+
+    final currentRole = ref.watch(userRoleProvider);
 
     return Scaffold(
       appBar: PreferredSize(
@@ -123,34 +127,89 @@ class ResponsiveShell extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Quick User Profile Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                // Interactive RBAC User Role Switcher Badge
+                PopupMenuButton<UserRole>(
+                  tooltip: 'Switch Active User Role (RBAC)',
+                  initialValue: currentRole,
+                  offset: const Offset(0, 42),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundColor: activeArchetype.brandColor,
-                        child: const Text('SA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                  onSelected: (role) {
+                    ref.read(userRoleProvider.notifier).switchRole(role);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Switched Persona to "${role.displayName}" (${role.permissionBadge})'),
+                        duration: const Duration(seconds: 1),
                       ),
-                      if (context.isDesktop) ...[
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                    );
+                  },
+                  itemBuilder: (context) {
+                    return UserRole.values.map((role) {
+                      final isSelected = role == currentRole;
+                      return PopupMenuItem<UserRole>(
+                        value: role,
+                        child: Row(
                           children: [
-                            Text('Super Admin', style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold)),
-                            Text('All Permissions', style: AppTypography.caption.copyWith(fontSize: 9, color: AppColors.success)),
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: role.badgeColor,
+                              child: Text(role.shortCode, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    role.displayName,
+                                    style: AppTypography.bodyBold.copyWith(
+                                      color: isSelected ? role.badgeColor : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                    ),
+                                  ),
+                                  Text(role.permissionBadge, style: AppTypography.caption.copyWith(fontSize: 10)),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(Icons.check_rounded, size: 16, color: role.badgeColor),
                           ],
                         ),
+                      );
+                    }).toList();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(color: currentRole.badgeColor.withValues(alpha: 0.5), width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: currentRole.badgeColor,
+                          child: Text(currentRole.shortCode, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                        if (context.isDesktop) ...[
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(currentRole.displayName, style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold)),
+                              Text(currentRole.permissionBadge, style: AppTypography.caption.copyWith(fontSize: 9, color: currentRole.badgeColor)),
+                            ],
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down_rounded, size: 14),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],
