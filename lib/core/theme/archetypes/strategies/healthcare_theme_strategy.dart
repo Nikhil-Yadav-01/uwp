@@ -40,5 +40,11 @@ class HealthcareThemeStrategy implements IArchetypeThemeStrategy {
       );
 
   @override
+  ThemeData buildLightTheme() => profile.toThemeData(Brightness.light);
+
+  @override
+  ThemeData buildDarkTheme() => profile.toThemeData(Brightness.dark);
+
+  @override
   ThemeData buildTheme(Brightness brightness) => profile.toThemeData(brightness);
 }

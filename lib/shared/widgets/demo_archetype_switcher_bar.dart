@@ -61,6 +61,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                /* Temporarily commented out:
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -91,6 +92,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                     ),
                   ],
                 ),
+                */
                 PopupMenuButton<BusinessArchetypeType>(
                   tooltip: 'Switch Business Vertical & Environmental Theme',
                   initialValue: activeArchetype.type,
@@ -143,6 +145,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                                                   : AppColors.textPrimaryLight),
                                         ),
                                       ),
+                                      /* Temporarily commented out:
                                       const SizedBox(width: 6),
                                       Text(
                                         '• ${archetype.themeProfile.environmentName}',
@@ -152,6 +155,7 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
+                                      */
                                     ],
                                   ),
                                   Text(

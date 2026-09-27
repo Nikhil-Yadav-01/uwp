@@ -39,6 +39,7 @@ class ResponsiveShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(archetypeProvider);
     final activeArchetype = state.archetype;
+    final themeMode = ref.watch(appThemeModeProvider);
     final isDesktop = context.isDesktop;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentRoute = GoRouterState.of(context).uri.path;
@@ -101,6 +102,24 @@ class ResponsiveShell extends ConsumerWidget {
                 // 1-Click Interactive Demo Archetype Switcher in Top Bar!
                 const Flexible(
                   child: DemoArchetypeSwitcherBar(),
+                ),
+                const SizedBox(width: 8),
+
+                // Theme Mode Toggle (System / Light / Dark)
+                IconButton(
+                  tooltip: 'Theme: ${themeMode == ThemeMode.system ? "System (Device)" : (themeMode == ThemeMode.dark ? "Dark" : "Light")}',
+                  icon: Icon(
+                    themeMode == ThemeMode.system
+                        ? Icons.brightness_auto_outlined
+                        : (themeMode == ThemeMode.dark ? Icons.dark_mode_outlined : Icons.light_mode_outlined),
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    final nextMode = themeMode == ThemeMode.system
+                        ? ThemeMode.light
+                        : (themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.system);
+                    ref.read(appThemeModeProvider.notifier).state = nextMode;
+                  },
                 ),
                 const SizedBox(width: 8),
 

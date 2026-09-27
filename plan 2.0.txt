@@ -1,0 +1,722 @@
+┌─────────────────┐
+                    │     SUPPLIER    │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ PURCHASE ORDER  │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ GOODS RECEIVING │
+                    │      (GRN)      │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ QUALITY CHECK   │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ PUT-AWAY        │
+                    │ Rack/Bin        │
+                    └────────┬────────┘
+                             │
+                             ▼
+                 ┌───────────────────────┐
+                 │       INVENTORY       │
+                 │ Warehouse/Rack/Bin    │
+                 └───────────┬───────────┘
+                             │
+                ┌────────────┴────────────┐
+                │                         │
+                ▼                         ▼
+        ┌───────────────┐         ┌───────────────┐
+        │ SALES ORDER   │         │ STOCK TRANSFER│
+        └───────┬───────┘         └───────┬───────┘
+                │                         │
+                ▼                         ▼
+        ┌───────────────┐         ┌───────────────┐
+        │    PICKING    │         │ TRANSFER OUT  │
+        └───────┬───────┘         └───────────────┘
+                │
+                ▼
+        ┌───────────────┐
+        │    PACKING    │
+        └───────┬───────┘
+                │
+                ▼
+        ┌───────────────┐
+        │   DISPATCH    │
+        └───────┬───────┘
+                │
+                ▼
+        ┌───────────────┐
+        │   DELIVERY    │
+        └───────────────┘
+
+
+Master Management:
+Users
+Roles & Permissions
+Warehouses
+Warehouse Zones
+Racks
+Shelves
+Bins/Locations
+Products
+Product Categories
+Units of Measurement
+Suppliers
+Customers
+Tax/GST
+Inventory Adjustment Reasons
+ 
+
+Warehouse Management System (WMS)
+                   
+       
+
+Example warehouse structure:
+Warehouse
+   │
+   ├── Zone A
+   │      ├── Rack A01
+   │      │      ├── Shelf 01
+   │      │      │      ├── BIN-A01-01
+   │      │      │      └── BIN-A01-02
+   │      │      └── Shelf 02
+   │
+   └── Zone B
+          └── Rack B01
+```
+
+This becomes very important when you implement **put-away and picking**.
+
+---
+
+# 3. Purchase → Warehouse Flow
+
+Suppose you purchase:
+
+> 100 units of Product A
+
+### Step 1 — Purchase Order
+
+```text
+Purchase Order
+PO-10001
+
+Supplier: ABC Supplier
+
+Product A
+Qty: 100
+Rate: ₹500
+```
+
+Status:
+
+```text
+Draft
+ ↓
+Approved
+ ↓
+Partially Received
+ ↓
+Fully Received
+```
+
+### Step 2 — Goods Receipt / GRN
+
+Warehouse receives 100 units.
+
+```text
+GRN-10001
+
+PO: PO-10001
+
+Product A
+Expected: 100
+Received: 100
+Damaged: 2
+Accepted: 98
+```
+
+Inventory should **not automatically become available before your receiving/quality rules are satisfied**.
+
+### Step 3 — Quality Check
+
+```text
+Received
+   ↓
+Quality Check
+   ├── Accepted
+   └── Rejected
+```
+
+### Step 4 — Put Away
+
+The 98 accepted units are assigned to physical locations.
+
+```text
+Product A
+98 Units
+
+Warehouse: WH01
+Zone: A
+Rack: A01
+Bin: A01-05
+```
+
+Now inventory becomes:
+
+```text
+Product A
+WH01 / A01-05
+Available Qty = 98
+```
+
+---
+
+# 4. Inventory Structure
+
+I recommend **not keeping inventory as only `Product.Quantity`**.
+
+Instead:
+
+```text
+Product
+   ↓
+Inventory
+   ↓
+Warehouse
+   ↓
+Location/Bin
+```
+
+For example:
+
+| Product | Warehouse | Bin    | Qty |
+| ------- | --------- | ------ | --: |
+| PROD001 | WH01      | A01-01 |  50 |
+| PROD001 | WH01      | A01-02 |  30 |
+| PROD001 | WH02      | B02-01 |  20 |
+
+Total:
+
+```text
+PROD001 = 100
+```
+
+You can then calculate:
+
+```text
+Available
+Reserved
+Picked
+Damaged
+Blocked
+InTransit
+```
+
+---
+
+# 5. Sales Order Flow
+
+When a customer places an order:
+
+```text
+Sales Order
+     ↓
+Order Confirmation
+     ↓
+Inventory Reservation
+     ↓
+Pick List
+     ↓
+Picking
+     ↓
+Packing
+     ↓
+Dispatch
+     ↓
+Delivery
+```
+
+### Example
+
+Customer orders:
+
+```text
+Product A = 10
+Product B = 5
+```
+
+System checks:
+
+```text
+Available Stock
+       ↓
+Reserve Stock
+       ↓
+Generate Pick List
+```
+
+---
+
+# 6. Picking Flow
+
+The system should tell the warehouse employee exactly where to pick.
+
+```text
+Pick List PL-10001
+
+Product A
+Qty: 10
+Location: WH01 / A01-05
+
+Product B
+Qty: 5
+Location: WH01 / A02-03
+```
+
+Warehouse employee scans:
+
+```text
+Bin Barcode
+     ↓
+Product Barcode
+     ↓
+Quantity
+     ↓
+Confirm Pick
+```
+
+This is where barcode/QR scanning becomes extremely useful.
+
+---
+
+# 7. Packing
+
+After all items are picked:
+
+```text
+Picked
+  ↓
+Packing Station
+  ↓
+Package Created
+  ↓
+Weight
+Dimensions
+Courier
+Tracking Number
+```
+
+Example:
+
+```text
+Package: PKG-10001
+
+Order: SO-10001
+
+Weight: 4.5 KG
+Length: 30 CM
+Width: 20 CM
+Height: 15 CM
+
+Courier: XYZ
+Tracking: TRK123456
+```
+
+---
+
+# 8. Dispatch
+
+```text
+Packed
+   ↓
+Dispatch Confirmation
+   ↓
+Stock Deduction
+   ↓
+Shipment Created
+   ↓
+Courier Handover
+```
+
+Depending on your business rules, **stock should generally be committed/deducted at a clearly defined point**, rather than simply when an order is created.
+
+---
+
+# 9. Stock Transfer
+
+Warehouse-to-warehouse:
+
+```text
+WH01
+ ↓
+Transfer Request
+ ↓
+Approval
+ ↓
+Pick From WH01
+ ↓
+In Transit
+ ↓
+Receive at WH02
+ ↓
+Put Away
+```
+
+Example:
+
+```text
+WH01
+Product A = 100
+
+Transfer 30
+
+WH01 = 70
+In Transit = 30
+
+Receive at WH02
+
+WH02 = 30
+```
+
+---
+
+# 10. Stock Adjustment
+
+For damaged, missing, expired or manually corrected stock:
+
+```text
+Inventory
+    ↓
+Adjustment Request
+    ↓
+Reason
+    ↓
+Approval
+    ↓
+Stock Adjustment
+```
+
+Example:
+
+```text
+System Stock = 100
+Physical Stock = 98
+
+Difference = -2
+
+Reason:
+Damaged
+```
+
+Every adjustment should create an **audit/stock movement record**.
+
+---
+
+# 11. Most Important Table Design
+
+A reasonable first version could contain:
+
+```text
+Users
+Roles
+Permissions
+
+Warehouses
+WarehouseZones
+WarehouseLocations
+
+Products
+ProductCategories
+Units
+
+Suppliers
+Customers
+
+PurchaseOrders
+PurchaseOrderItems
+
+GoodsReceipts
+GoodsReceiptItems
+
+QualityChecks
+
+PutAwayTasks
+PutAwayItems
+
+Inventory
+InventoryTransactions
+
+SalesOrders
+SalesOrderItems
+
+StockReservations
+
+PickLists
+PickListItems
+
+PackingOrders
+Packages
+PackageItems
+
+Shipments
+
+StockTransfers
+StockTransferItems
+
+InventoryAdjustments
+
+AuditLogs
+```
+
+## 12. Very Important: InventoryTransactions
+
+I strongly recommend maintaining a **stock ledger**.
+
+For example:
+
+```text
+InventoryTransactions
+
+TransactionId
+ProductId
+WarehouseId
+LocationId
+TransactionType
+Quantity
+ReferenceType
+ReferenceId
+CreatedBy
+CreatedAt
+```
+
+Transaction types:
+
+```text
+PURCHASE_RECEIPT
+PUTAWAY
+SALE
+PICK
+TRANSFER_OUT
+TRANSFER_IN
+ADJUSTMENT_IN
+ADJUSTMENT_OUT
+RETURN
+DAMAGE
+```
+
+Then you can answer:
+
+> "Why did Product A decrease from 100 to 90?"
+
+System can show:
+
+```text
+100  Purchase Receipt
+ -5  Sales Order #1001
+ -3  Sales Order #1002
+ -2  Damaged
+------------------
+90   Current Stock
+```
+
+This is much safer than simply updating a quantity column with no history.
+
+---
+
+# 13. .NET API Structure
+
+For ASP.NET Core:
+
+```text
+WarehouseManagement.API
+│
+├── Controllers
+│   ├── AuthController
+│   ├── ProductsController
+│   ├── WarehousesController
+│   ├── SuppliersController
+│   ├── PurchaseOrdersController
+│   ├── GoodsReceiptsController
+│   ├── InventoryController
+│   ├── SalesOrdersController
+│   ├── PickingController
+│   ├── PackingController
+│   ├── ShipmentsController
+│   ├── StockTransferController
+│   └── ReportsController
+│
+├── Models
+│
+├── DTOs
+│
+├── Services
+│
+├── Repositories
+│
+├── Data
+│   └── ApplicationDbContext.cs
+│
+├── Middleware
+│   ├── ExceptionMiddleware
+│   └── AuditMiddleware
+│
+├── Authentication
+│
+└── Helpers
+```
+
+For a serious WMS, I would use:
+
+```text
+Controller
+    ↓
+Service
+    ↓
+Repository / EF Core
+    ↓
+SQL Server
+```
+
+rather than putting all business logic inside controllers.
+
+---
+
+# 14. User Roles
+
+I'd define roles such as:
+
+```text
+Super Admin
+Warehouse Admin
+Warehouse Manager
+Purchase Manager
+Inventory Manager
+Picker
+Packer
+Dispatch Manager
+Delivery/Logistics
+Sales User
+Auditor
+```
+
+For example:
+
+**Picker**
+
+```text
+Can:
+✓ View Pick Lists
+✓ Scan products
+✓ Confirm picking
+
+Cannot:
+✗ Modify product price
+✗ Delete inventory
+✗ Create users
+✗ Change warehouse configuration
+```
+
+---
+
+# 15. Dashboard
+
+The main dashboard could show:
+
+```text
+┌─────────────────────────────────────────┐
+│           WAREHOUSE DASHBOARD           │
+├──────────┬──────────┬──────────┬────────┤
+│ Products │ Stock    │ Orders   │ Pending│
+│ 12,540   │ 85,420   │ 1,250    │  182   │
+└──────────┴──────────┴──────────┴────────┘
+
+Today's Receiving       125
+Today's Dispatch        210
+Pending Picking          35
+Pending Packing          18
+Low Stock Products       42
+Damaged Items             8
+
+Recent Stock Movements
+──────────────────────────────
+Product     Movement     Qty
+Product A   Received     +100
+Product B   Picked        -20
+Product C   Transfer     -50
+```
+
+---
+
+## 16. Recommended Development Order
+
+Don't build everything at once.
+
+I'd develop it in this order:
+
+**Phase 1 — Foundation**
+
+```text
+Authentication
+Users/Roles
+Products
+Categories
+UOM
+Suppliers
+Customers
+```
+
+**Phase 2 — Warehouse**
+
+```text
+Warehouse
+Zones
+Racks
+Shelves
+Bins
+Inventory
+Stock Ledger
+```
+
+**Phase 3 — Inbound**
+
+```text
+Purchase Order
+GRN
+Quality Check
+Put Away
+```
+
+**Phase 4 — Outbound**
+
+```text
+Sales Order
+Reservation
+Picking
+Packing
+Dispatch
+Shipment
+```
+
+**Phase 5 — Operations**
+
+```text
+Stock Transfer
+Stock Adjustment
+Returns
+Damaged Stock
+Cycle Counting
+
+
+The central flow should be:
+
+**Purchase → Receive → QC → Put Away → Inventory → Reserve → Pick → Pack → Dispatch → Delivery**
+.

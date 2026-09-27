@@ -65,6 +65,6 @@ final currentArchetypeThemeProvider = Provider<ArchetypeThemeProfile>((ref) {
   return ref.watch(archetypeProvider.select((state) => state.archetype.themeProfile));
 });
 
-/// Theme mode provider (defaults to dark mode for enterprise ergonomics)
-final appThemeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+/// Theme mode provider (defaults to system / device theme)
+final appThemeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
