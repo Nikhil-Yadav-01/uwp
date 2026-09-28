@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/design/app_radii.dart';
+import '../../../../core/design/app_sizes.dart';
+import '../../../../core/design/app_spacing.dart';
+import '../../../../core/design/app_typography.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../domain/models/sales_order.dart';
 import '../controllers/outbound_controller.dart';
 
+/// Modal dialog for batching and dispatching optimized Wave Picklists.
 class WaveGeneratorModal extends ConsumerStatefulWidget {
   const WaveGeneratorModal({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return ModalShell.show(
+      context: context,
+      maxWidth: 680,
+      child: const WaveGeneratorModal(),
+    );
+  }
 
   @override
   ConsumerState<WaveGeneratorModal> createState() => _WaveGeneratorModalState();
@@ -26,113 +40,174 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final outboundState = ref.watch(outboundNotifierProvider);
     final unassignedOrders = outboundState.salesOrders
         .where((o) => o.status == OutboundStatus.allocated || o.status == OutboundStatus.pending)
         .toList();
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
-      backgroundColor: theme.colorScheme.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: Container(
-        width: 680,
-        constraints: const BoxConstraints(maxHeight: 680),
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 520;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppRadii.r8),
+                  ),
+                  child: Icon(Icons.bolt_rounded, color: colorScheme.primary, size: AppSizes.iconMd),
+                ),
+                AppGap.w12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Generate Wave Picklist',
+                        style: AppTypography.headlineSmall.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        ),
                       ),
-                      child: Icon(Icons.bolt_rounded, color: theme.colorScheme.primary, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Generate Wave Picklist', style: AppTypography.h2),
-                        Text('Optimized routing & FEFO sequence aggregator', style: AppTypography.caption),
-                      ],
-                    ),
-                  ],
+                      AppGap.h4,
+                      Text(
+                        'Optimized routing & FEFO sequence aggregator',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, size: AppSizes.iconSm + 4),
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
-            const Divider(height: 24),
+            const Divider(height: AppSpacing.lg),
 
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _pickerController,
-                    decoration: const InputDecoration(
-                      labelText: 'Assigned Picker / Voice Station',
-                      prefixIcon: Icon(Icons.person_pin_rounded),
+            // Picker & Zone Row/Column
+            if (isNarrow) ...[
+              TextFormField(
+                controller: _pickerController,
+                decoration: const InputDecoration(
+                  labelText: 'Assigned Picker / Voice Station',
+                  prefixIcon: Icon(Icons.person_pin_rounded, size: AppSizes.iconSm),
+                ),
+              ),
+              AppGap.h12,
+              DropdownButtonFormField<String>(
+                initialValue: _selectedZone,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Fulfillment Zone',
+                  prefixIcon: Icon(Icons.map_outlined, size: AppSizes.iconSm),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Zone A (Main Logistics Hub)', child: Text('Zone A (Main Hub)')),
+                  DropdownMenuItem(value: 'Zone B (Cold-Chain & Perishables)', child: Text('Zone B (Cold-Chain)')),
+                  DropdownMenuItem(value: 'Zone V (High-Security Narcotics Vault)', child: Text('Zone V (Narcotics Vault)')),
+                ],
+                onChanged: (v) => setState(() => _selectedZone = v ?? _selectedZone),
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _pickerController,
+                      decoration: const InputDecoration(
+                        labelText: 'Assigned Picker / Voice Station',
+                        prefixIcon: Icon(Icons.person_pin_rounded, size: AppSizes.iconSm),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _selectedZone,
-                    decoration: const InputDecoration(
-                      labelText: 'Fulfillment Zone',
-                      prefixIcon: Icon(Icons.map_outlined),
+                  AppGap.w12,
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedZone,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Fulfillment Zone',
+                        prefixIcon: Icon(Icons.map_outlined, size: AppSizes.iconSm),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'Zone A (Main Logistics Hub)', child: Text('Zone A (Main Hub)')),
+                        DropdownMenuItem(value: 'Zone B (Cold-Chain & Perishables)', child: Text('Zone B (Cold-Chain)')),
+                        DropdownMenuItem(value: 'Zone V (High-Security Narcotics Vault)', child: Text('Zone V (Narcotics Vault)')),
+                      ],
+                      onChanged: (v) => setState(() => _selectedZone = v ?? _selectedZone),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'Zone A (Main Logistics Hub)', child: Text('Zone A (Main Hub)')),
-                      DropdownMenuItem(value: 'Zone B (Cold-Chain & Perishables)', child: Text('Zone B (Cold-Chain)')),
-                      DropdownMenuItem(value: 'Zone V (High-Security Narcotics Vault)', child: Text('Zone V (Narcotics Vault)')),
-                    ],
-                    onChanged: (v) => setState(() => _selectedZone = v ?? _selectedZone),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
+                ],
+              ),
+            ],
+            AppGap.h16,
 
+            // Order Backlog Selection List Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Select Orders to Batch (${_selectedOrderIds.length} Selected)', style: AppTypography.bodyBold),
+                Text(
+                  'Select Orders to Batch (${_selectedOrderIds.length} Selected)',
+                  style: AppTypography.labelLarge.copyWith(fontWeight: FontWeight.bold),
+                ),
                 TextButton(
-                  onPressed: () {
-                    setState(() {
-                      if (_selectedOrderIds.length == unassignedOrders.length) {
-                        _selectedOrderIds.clear();
-                      } else {
-                        _selectedOrderIds.addAll(unassignedOrders.map((o) => o.id));
-                      }
-                    });
-                  },
-                  child: Text(_selectedOrderIds.length == unassignedOrders.length ? 'Deselect All' : 'Select All'),
+                  onPressed: unassignedOrders.isEmpty
+                      ? null
+                      : () {
+                          setState(() {
+                            if (_selectedOrderIds.length == unassignedOrders.length) {
+                              _selectedOrderIds.clear();
+                            } else {
+                              _selectedOrderIds.addAll(unassignedOrders.map((o) => o.id));
+                            }
+                          });
+                        },
+                  style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                  child: Text(
+                    _selectedOrderIds.length == unassignedOrders.length ? 'Deselect All' : 'Select All',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            AppGap.h8,
 
-            Expanded(
+            // Order Selection Items Box
+            Container(
+              constraints: const BoxConstraints(maxHeight: 260),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: BorderRadius.circular(AppRadii.r8),
+                border: Border.all(color: colorScheme.outline),
+              ),
               child: unassignedOrders.isEmpty
                   ? Center(
-                      child: Text(
-                        'No unassigned orders ready for wave dispatch.',
-                        style: AppTypography.caption,
+                      child: Padding(
+                        padding: AppPadding.p24,
+                        child: Text(
+                          'No unassigned orders ready for wave dispatch.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
                       ),
                     )
                   : ListView.builder(
+                      shrinkWrap: true,
                       itemCount: unassignedOrders.length,
                       itemBuilder: (context, index) {
                         final order = unassignedOrders[index];
@@ -140,20 +215,22 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
                         final isEmergency = order.priority == OrderPriority.emergencyCrashCart;
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
+                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                                : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(AppRadii.r8),
                             border: Border.all(
                               color: isSelected
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.outlineVariant,
+                                  ? colorScheme.primary
+                                  : colorScheme.outline,
                             ),
                           ),
                           child: CheckboxListTile(
                             value: isSelected,
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                             onChanged: (val) {
                               setState(() {
                                 if (val == true) {
@@ -165,18 +242,25 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
                             },
                             title: Row(
                               children: [
-                                Text(order.soNumber, style: AppTypography.bodyBold),
+                                Text(
+                                  order.soNumber,
+                                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                ),
                                 if (isEmergency) ...[
-                                  const SizedBox(width: 8),
+                                  AppGap.w8,
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: theme.colorScheme.error,
-                                      borderRadius: BorderRadius.circular(4),
+                                      color: colorScheme.error,
+                                      borderRadius: BorderRadius.circular(AppRadii.r4),
                                     ),
                                     child: Text(
                                       'EMERGENCY',
-                                      style: AppTypography.captionBold.copyWith(color: theme.colorScheme.onError, fontSize: 10),
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: colorScheme.onError,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 9,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -184,54 +268,89 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
                             ),
                             subtitle: Text(
                               '${order.customerName} • ${order.items.length} items (${order.totalRequestedUnits.toStringAsFixed(0)} units)',
-                              style: AppTypography.caption,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         );
                       },
                     ),
             ),
+            AppGap.h20,
 
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _selectedOrderIds.isEmpty
-                      ? null
-                      : () async {
-                          final success = await ref.read(outboundNotifierProvider.notifier).generateWave(
-                            orderIds: _selectedOrderIds.toList(),
-                            pickerName: _pickerController.text.trim(),
-                            zone: _selectedZone,
-                          );
-                          if (context.mounted && success) {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Optimized Wave Picklist dispatched successfully!'),
-                                backgroundColor: theme.colorScheme.primary,
-                              ),
+            // Footer Actions
+            if (isNarrow)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _selectedOrderIds.isEmpty
+                        ? null
+                        : () async {
+                            final success = await ref.read(outboundNotifierProvider.notifier).generateWave(
+                              orderIds: _selectedOrderIds.toList(),
+                              pickerName: _pickerController.text.trim(),
+                              zone: _selectedZone,
                             );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
+                            if (context.mounted && success) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Optimized Wave Picklist dispatched successfully!'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.flash_on_rounded, size: AppSizes.iconSm),
+                    label: Text('Dispatch Wave (${_selectedOrderIds.length})'),
                   ),
-                  icon: const Icon(Icons.flash_on_rounded, size: 18),
-                  label: const Text('Dispatch Wave to Floor'),
-                ),
-              ],
-            ),
+                  AppGap.h8,
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  AppGap.w12,
+                  ElevatedButton.icon(
+                    onPressed: _selectedOrderIds.isEmpty
+                        ? null
+                        : () async {
+                            final success = await ref.read(outboundNotifierProvider.notifier).generateWave(
+                              orderIds: _selectedOrderIds.toList(),
+                              pickerName: _pickerController.text.trim(),
+                              zone: _selectedZone,
+                            );
+                            if (context.mounted && success) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Optimized Wave Picklist dispatched successfully!'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.flash_on_rounded, size: AppSizes.iconSm),
+                    label: Text('Dispatch Wave to Floor (${_selectedOrderIds.length})'),
+                  ),
+                ],
+              ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -230,6 +230,22 @@ class OutboundRepositoryImpl implements IOutboundRepository {
   }
 
   @override
+  Future<Result<SalesOrder>> updateSalesOrder(SalesOrder order) async {
+    try {
+      final index = _orders.indexWhere((o) => o.id == order.id);
+      if (index >= 0) {
+        _orders[index] = order;
+        return Result.success(order);
+      } else {
+        _orders.insert(0, order);
+        return Result.success(order);
+      }
+    } catch (e) {
+      return Result.failure(DatabaseFailure('Failed to update sales order: $e'));
+    }
+  }
+
+  @override
   Future<Result<SalesOrder>> updateSalesOrderStatus(
     String orderId,
     OutboundStatus newStatus,

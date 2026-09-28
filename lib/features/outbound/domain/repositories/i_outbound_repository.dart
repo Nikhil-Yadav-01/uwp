@@ -13,6 +13,8 @@ abstract class IOutboundRepository {
 
   Future<Result<SalesOrder>> createSalesOrder(SalesOrder order);
 
+  Future<Result<SalesOrder>> updateSalesOrder(SalesOrder order);
+
   Future<Result<SalesOrder>> updateSalesOrderStatus(
     String orderId,
     OutboundStatus newStatus,

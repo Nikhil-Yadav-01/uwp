@@ -125,6 +125,24 @@ class OutboundNotifier extends StateNotifier<OutboundState> {
     );
   }
 
+  Future<bool> updateSalesOrder(SalesOrder order) async {
+    state = state.copyWith(isLoading: true);
+    final result = await _repository.updateSalesOrder(order);
+    return result.fold(
+      onSuccess: (updated) {
+        loadOutboundData();
+        if (state.selectedOrder?.id == updated.id) {
+          state = state.copyWith(selectedOrder: updated);
+        }
+        return true;
+      },
+      onFailure: (f) {
+        state = state.copyWith(isLoading: false, errorMessage: f.message);
+        return false;
+      },
+    );
+  }
+
   Future<bool> generateWave({
     required List<String> orderIds,
     String? pickerName,
