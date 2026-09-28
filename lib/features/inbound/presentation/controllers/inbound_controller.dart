@@ -115,6 +115,24 @@ class InboundNotifier extends StateNotifier<InboundState> {
     );
   }
 
+  Future<bool> updatePurchaseOrder(PurchaseOrder order) async {
+    state = state.copyWith(isLoading: true);
+    final result = await _repository.updatePurchaseOrder(order);
+    return result.fold(
+      onSuccess: (updated) {
+        loadInboundData();
+        if (state.selectedOrder?.id == updated.id) {
+          state = state.copyWith(selectedOrder: updated);
+        }
+        return true;
+      },
+      onFailure: (f) {
+        state = state.copyWith(isLoading: false, errorMessage: f.message);
+        return false;
+      },
+    );
+  }
+
   Future<bool> receiveDockGoods({
     required String poId,
     required List<PurchaseOrderItem> receivedItems,

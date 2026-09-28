@@ -11,16 +11,19 @@ import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../../products/presentation/controllers/product_controller.dart';
 import '../../domain/models/purchase_order.dart';
 import '../controllers/inbound_controller.dart';
+import 'po_detail_modal.dart';
 
-/// Modal dialog for creating and approving new Purchase Orders.
+/// Modal dialog for creating and editing Purchase Orders.
 class PoFormModal extends ConsumerStatefulWidget {
-  const PoFormModal({super.key});
+  final PurchaseOrder? purchaseOrder;
 
-  static Future<void> show(BuildContext context) {
+  const PoFormModal({super.key, this.purchaseOrder});
+
+  static Future<void> show(BuildContext context, {PurchaseOrder? purchaseOrder}) {
     return ModalShell.show(
       context: context,
       maxWidth: 680,
-      child: const PoFormModal(),
+      child: PoFormModal(purchaseOrder: purchaseOrder),
     );
   }
 
@@ -30,20 +33,46 @@ class PoFormModal extends ConsumerStatefulWidget {
 
 class _PoFormModalState extends ConsumerState<PoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  final _vendorController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _notesController = TextEditingController();
+  late TextEditingController _vendorController;
+  late TextEditingController _emailController;
+  late TextEditingController _notesController;
+  late TextEditingController _qtyController;
+  late TextEditingController _priceController;
 
   String? _selectedProductId;
   double _quantity = 10.0;
   double _unitPrice = 25.0;
   final Map<String, dynamic> _customAttributes = {};
 
+  bool get isEdit => widget.purchaseOrder != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final po = widget.purchaseOrder;
+    _vendorController = TextEditingController(text: po?.vendorName ?? '');
+    _emailController = TextEditingController(text: po?.vendorEmail ?? '');
+    _notesController = TextEditingController(text: po?.notes ?? '');
+
+    if (po != null && po.items.isNotEmpty) {
+      final firstItem = po.items.first;
+      _selectedProductId = firstItem.productId;
+      _quantity = firstItem.orderedQty;
+      _unitPrice = firstItem.unitPrice;
+      _customAttributes.addAll(firstItem.customAttributes);
+    }
+
+    _qtyController = TextEditingController(text: _quantity.toStringAsFixed(0));
+    _priceController = TextEditingController(text: _unitPrice.toStringAsFixed(2));
+  }
+
   @override
   void dispose() {
     _vendorController.dispose();
     _emailController.dispose();
     _notesController.dispose();
+    _qtyController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -62,6 +91,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header Bar
           Row(
@@ -72,7 +102,11 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                   color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppRadii.r8),
                 ),
-                child: Icon(Icons.note_add_rounded, color: colorScheme.primary, size: AppSizes.iconMd),
+                child: Icon(
+                  isEdit ? Icons.edit_note_rounded : Icons.note_add_rounded,
+                  color: colorScheme.primary,
+                  size: AppSizes.iconMd,
+                ),
               ),
               AppGap.w12,
               Expanded(
@@ -80,18 +114,24 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Create Purchase Order',
+                      isEdit ? 'Edit Purchase Order' : 'Create Purchase Order',
                       style: AppTypography.headlineSmall.copyWith(
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                         fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     AppGap.h4,
                     Text(
-                      'Inbound inventory intake for ${archetype.name}',
+                      isEdit
+                          ? 'Updating ${widget.purchaseOrder!.poNumber}'
+                          : 'Inbound intake for ${archetype.name}',
                       style: AppTypography.bodySmall.copyWith(
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -107,7 +147,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
 
           LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 500;
+              final isNarrow = constraints.maxWidth < 480;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,6 +209,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                   ),
                   AppGap.h8,
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: _selectedProductId ?? (products.isNotEmpty ? products.first.id : null),
                     decoration: const InputDecoration(
                       labelText: 'Select Product from Catalog *',
@@ -177,7 +218,11 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                     items: products.map((p) {
                       return DropdownMenuItem(
                         value: p.id,
-                        child: Text('${p.name} (${p.sku})', overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          '${p.name} (${p.sku})',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -186,6 +231,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                         if (val != null) {
                           final p = products.firstWhere((prod) => prod.id == val);
                           _unitPrice = p.costPrice > 0 ? p.costPrice : p.sellingPrice * 0.7;
+                          _priceController.text = _unitPrice.toStringAsFixed(2);
                         }
                       });
                     },
@@ -193,7 +239,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                   AppGap.h12,
                   if (isNarrow) ...[
                     TextFormField(
-                      initialValue: _quantity.toStringAsFixed(0),
+                      controller: _qtyController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Ordered Quantity *',
@@ -203,7 +249,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                     ),
                     AppGap.h12,
                     TextFormField(
-                      initialValue: _unitPrice.toStringAsFixed(2),
+                      controller: _priceController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         labelText: 'Unit Cost (\$) *',
@@ -216,7 +262,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                       children: [
                         Expanded(
                           child: TextFormField(
-                            initialValue: _quantity.toStringAsFixed(0),
+                            controller: _qtyController,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               labelText: 'Ordered Quantity *',
@@ -228,7 +274,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                         AppGap.w12,
                         Expanded(
                           child: TextFormField(
-                            initialValue: _unitPrice.toStringAsFixed(2),
+                            controller: _priceController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Unit Cost (\$) *',
@@ -256,11 +302,14 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                           children: [
                             Icon(Icons.tune_rounded, size: AppSizes.iconSm, color: colorScheme.primary),
                             AppGap.w8,
-                            Text(
-                              'Archetype Compliance & Receiving Controls',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Text(
+                                'Archetype Compliance & Receiving Controls',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -268,6 +317,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                         AppGap.h8,
                         if (archetype.id == 'healthcare_pharma') ...[
                           TextFormField(
+                            initialValue: _customAttributes['ndcNumber']?.toString(),
                             decoration: const InputDecoration(
                               labelText: 'NDC / Drug License Number',
                               isDense: true,
@@ -284,6 +334,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                           ),
                         ] else if (archetype.id == 'grocery_foods') ...[
                           TextFormField(
+                            initialValue: _customAttributes['batchLot']?.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Batch / Lot Number',
                               isDense: true,
@@ -292,6 +343,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                           ),
                           AppGap.h8,
                           TextFormField(
+                            initialValue: _customAttributes['dockTempReq']?.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Dock Temperature Requirement (e.g. +4°C)',
                               isDense: true,
@@ -300,6 +352,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                           ),
                         ] else if (archetype.id == 'leather_textiles') ...[
                           TextFormField(
+                            initialValue: _customAttributes['tanneryLot']?.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Tannery Batch Lot & Hide Grade Stamp',
                               isDense: true,
@@ -308,6 +361,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                           ),
                         ] else ...[
                           TextFormField(
+                            initialValue: _customAttributes['batchLot']?.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Batch Lot / Manufacturer Code',
                               isDense: true,
@@ -330,56 +384,126 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                   ),
                   AppGap.h16,
 
-                  // Dynamic Estimated Total & Action Buttons
-                  Container(
-                    padding: AppPadding.p12,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppRadii.r8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ESTIMATED ORDER VALUE',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                            Text(
-                              '\$${totalEstimate.toStringAsFixed(2)}',
-                              style: AppTypography.headlineSmall.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Cancel'),
-                            ),
-                            AppGap.w8,
-                            ElevatedButton.icon(
-                              onPressed: () => _handleSubmit(products, archetype),
-                              icon: const Icon(Icons.check_circle_outline_rounded, size: AppSizes.iconSm),
-                              label: const Text('Submit PO'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  // 4. Dynamic Estimated Total & Responsive Action Bar
+                  _buildEstimateAndActionBar(
+                    context,
+                    totalEstimate,
+                    isNarrow,
+                    products,
+                    archetype,
+                    colorScheme,
                   ),
                 ],
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEstimateAndActionBar(
+    BuildContext context,
+    double totalEstimate,
+    bool isNarrow,
+    List<dynamic> products,
+    dynamic archetype,
+    ColorScheme colorScheme,
+  ) {
+    final estimateCard = Container(
+      padding: AppPadding.p12,
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadii.r8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'ESTIMATED ORDER VALUE',
+            style: AppTypography.labelSmall.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+          Text(
+            '\$${totalEstimate.toStringAsFixed(2)}',
+            style: AppTypography.headlineSmall.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final cancelButton = TextButton(
+      onPressed: () => Navigator.of(context).pop(),
+      child: const Text('Cancel'),
+    );
+
+    final submitButton = ElevatedButton.icon(
+      onPressed: () => _handleSubmit(products, archetype),
+      icon: Icon(
+        isEdit ? Icons.save_rounded : Icons.check_circle_outline_rounded,
+        size: AppSizes.iconSm,
+      ),
+      label: Text(isEdit ? 'Save Changes' : 'Submit PO'),
+    );
+
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          estimateCard,
+          AppGap.h12,
+          Row(
+            children: [
+              Expanded(child: cancelButton),
+              AppGap.w8,
+              Expanded(flex: 2, child: submitButton),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      padding: AppPadding.p12,
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadii.r8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ESTIMATED ORDER VALUE',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+              Text(
+                '\$${totalEstimate.toStringAsFixed(2)}',
+                style: AppTypography.headlineSmall.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              cancelButton,
+              AppGap.w8,
+              submitButton,
+            ],
           ),
         ],
       ),
@@ -391,39 +515,85 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
     final prodId = _selectedProductId ?? (products.isNotEmpty ? products.first.id : 'prod_1');
     final prod = products.firstWhere((p) => p.id == prodId, orElse: () => products.first);
 
-    final newPO = PurchaseOrder(
-      id: 'PO-${DateTime.now().millisecondsSinceEpoch}',
-      poNumber: 'PO-2026-${archetype.id.substring(0, 3).toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-      vendorName: _vendorController.text.trim(),
-      vendorEmail: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
-      orderDate: DateTime.now(),
-      expectedDeliveryDate: DateTime.now().add(const Duration(days: 3)),
-      status: InboundStatus.approved,
-      archetypeId: archetype.id,
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-      items: [
-        PurchaseOrderItem(
-          id: 'POI-${DateTime.now().millisecondsSinceEpoch}',
-          productId: prod.id,
-          productName: prod.name,
-          sku: prod.sku,
-          orderedQty: _quantity,
-          unitPrice: _unitPrice,
-          uom: prod.baseUom,
-          customAttributes: _customAttributes,
-        ),
-      ],
-    );
-
-    final success = await ref.read(inboundNotifierProvider.notifier).createPurchaseOrder(newPO);
-    if (mounted && success) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Created Purchase Order ${newPO.poNumber}'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
+    if (isEdit) {
+      final existingPO = widget.purchaseOrder!;
+      final updatedPO = existingPO.copyWith(
+        vendorName: _vendorController.text.trim(),
+        vendorEmail: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
+        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        items: [
+          existingPO.items.isNotEmpty
+              ? existingPO.items.first.copyWith(
+                  productId: prod.id,
+                  productName: prod.name,
+                  sku: prod.sku,
+                  orderedQty: _quantity,
+                  unitPrice: _unitPrice,
+                  uom: prod.baseUom,
+                  customAttributes: _customAttributes,
+                )
+              : PurchaseOrderItem(
+                  id: 'POI-${DateTime.now().millisecondsSinceEpoch}',
+                  productId: prod.id,
+                  productName: prod.name,
+                  sku: prod.sku,
+                  orderedQty: _quantity,
+                  unitPrice: _unitPrice,
+                  uom: prod.baseUom,
+                  customAttributes: _customAttributes,
+                ),
+        ],
       );
+
+      final success = await ref.read(inboundNotifierProvider.notifier).updatePurchaseOrder(updatedPO);
+      if (mounted && success) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Updated Purchase Order ${updatedPO.poNumber}'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+        // Show updated PO detail view
+        PoDetailModal.show(context, purchaseOrder: updatedPO);
+      }
+    } else {
+      final newPO = PurchaseOrder(
+        id: 'PO-${DateTime.now().millisecondsSinceEpoch}',
+        poNumber: 'PO-2026-${archetype.id.substring(0, 3).toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+        vendorName: _vendorController.text.trim(),
+        vendorEmail: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
+        orderDate: DateTime.now(),
+        expectedDeliveryDate: DateTime.now().add(const Duration(days: 3)),
+        status: InboundStatus.approved,
+        archetypeId: archetype.id,
+        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        items: [
+          PurchaseOrderItem(
+            id: 'POI-${DateTime.now().millisecondsSinceEpoch}',
+            productId: prod.id,
+            productName: prod.name,
+            sku: prod.sku,
+            orderedQty: _quantity,
+            unitPrice: _unitPrice,
+            uom: prod.baseUom,
+            customAttributes: _customAttributes,
+          ),
+        ],
+      );
+
+      final success = await ref.read(inboundNotifierProvider.notifier).createPurchaseOrder(newPO);
+      if (mounted && success) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Created Purchase Order ${newPO.poNumber}'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+        // Show new PO detail view
+        PoDetailModal.show(context, purchaseOrder: newPO);
+      }
     }
   }
 }

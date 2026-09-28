@@ -385,21 +385,38 @@ class _QcInspectionModalState extends ConsumerState<QcInspectionModal> {
                   AppGap.h16,
 
                   // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
-                      ),
-                      AppGap.w12,
-                      ElevatedButton.icon(
-                        onPressed: () => _handleAuthorize(theme, requiresDualSignoff),
-                        icon: const Icon(Icons.verified_rounded, size: AppSizes.iconSm),
-                        label: const Text('Authorize & Sign Off QC'),
-                      ),
-                    ],
-                  ),
+                  if (isNarrow)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => _handleAuthorize(theme, requiresDualSignoff),
+                          icon: const Icon(Icons.verified_rounded, size: AppSizes.iconSm),
+                          label: const Text('Authorize & Sign Off QC'),
+                        ),
+                        AppGap.h8,
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        AppGap.w12,
+                        ElevatedButton.icon(
+                          onPressed: () => _handleAuthorize(theme, requiresDualSignoff),
+                          icon: const Icon(Icons.verified_rounded, size: AppSizes.iconSm),
+                          label: const Text('Authorize & Sign Off QC'),
+                        ),
+                      ],
+                    ),
                 ],
               );
             },

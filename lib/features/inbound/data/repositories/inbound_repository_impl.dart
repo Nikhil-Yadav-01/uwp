@@ -281,6 +281,22 @@ class InboundRepositoryImpl implements IInboundRepository {
   }
 
   @override
+  Future<Result<PurchaseOrder>> updatePurchaseOrder(PurchaseOrder po) async {
+    try {
+      final index = _orders.indexWhere((o) => o.id == po.id);
+      if (index >= 0) {
+        _orders[index] = po;
+        return Result.success(po);
+      } else {
+        _orders.insert(0, po);
+        return Result.success(po);
+      }
+    } catch (e) {
+      return Result.failure(DatabaseFailure('Failed to update purchase order: $e'));
+    }
+  }
+
+  @override
   Future<Result<PurchaseOrder>> updatePurchaseOrderStatus(
     String poId,
     InboundStatus newStatus,

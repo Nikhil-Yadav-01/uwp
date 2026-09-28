@@ -11,11 +11,14 @@ import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/models/putaway_task.dart';
 import '../controllers/inbound_controller.dart';
+import '../widgets/inbound_dock_card.dart';
+import '../widgets/inbound_po_card.dart';
+import '../widgets/inbound_putaway_card.dart';
+import '../widgets/inbound_qc_card.dart';
 import '../widgets/po_form_modal.dart';
-import '../widgets/putaway_confirm_modal.dart';
-import '../widgets/qc_inspection_modal.dart';
 
 /// Inbound Receiving, PO Pipeline, QC Gate & Directed Putaway Screen.
+/// Clean, unified, non-redundant UI with interactive pipeline stage navigation and search.
 class InboundScreen extends ConsumerStatefulWidget {
   const InboundScreen({super.key});
 
@@ -23,21 +26,15 @@ class InboundScreen extends ConsumerStatefulWidget {
   ConsumerState<InboundScreen> createState() => _InboundScreenState();
 }
 
-class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
-  }
+class _InboundScreenState extends ConsumerState<InboundScreen> {
+  int _activeStageIndex = 0;
+  String _searchQuery = '';
+  InboundStatus? _statusFilter;
+  final _searchController = TextEditingController();
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -64,111 +61,35 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Responsive Header Bar
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
-
-                  final titleSection = Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.xs,
-                        children: [
-                          Text(
-                            'Inbound Receiving & POs',
-                            style: AppTypography.headlineLarge.copyWith(
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                            decoration: BoxDecoration(
-                              color: archetype.brandColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(AppRadii.r4),
-                              border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
-                            ),
-                            child: Text(
-                              archetype.name,
-                              style: AppTypography.labelSmall.copyWith(
-                                color: archetype.brandColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      AppGap.h4,
-                      Text(
-                        'Dock intake, QC inspection gate & directed putaway for ${archetype.name}',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                    ],
-                  );
-
-                  final newPoButton = ElevatedButton.icon(
-                    onPressed: () => PoFormModal.show(context),
-                    icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
-                    label: const Text('New Purchase Order'),
-                  );
-
-                  if (isCompact) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        titleSection,
-                        AppGap.h12,
-                        SizedBox(width: double.infinity, child: newPoButton),
-                      ],
-                    );
-                  }
-
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: titleSection),
-                      AppGap.w16,
-                      newPoButton,
-                    ],
-                  );
-                },
-              ),
+              // 1. Responsive Top Header Bar
+              _buildHeaderBar(context, archetype, isDark, colorScheme),
               AppGap.h20,
 
-              // 2. Responsive 4-Stage KPI Pipeline Grid
-              _buildKpiSection(context, pendingPoCount, dockCount, qcCount, putawayCount, archetype, isDark, colorScheme),
-              AppGap.h24,
-
-              // 3. Tab Navigation Bar
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(AppRadii.r12),
-                  border: Border.all(color: colorScheme.outline),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: colorScheme.primary,
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.list_alt_rounded, size: AppSizes.iconSm), text: 'PO Pipeline'),
-                    Tab(icon: Icon(Icons.dock_rounded, size: AppSizes.iconSm), text: 'Dock Receiving (GRN)'),
-                    Tab(icon: Icon(Icons.verified_user_outlined, size: AppSizes.iconSm), text: 'QC Inspection Gate'),
-                    Tab(icon: Icon(Icons.grid_view_rounded, size: AppSizes.iconSm), text: 'Directed Putaway'),
-                  ],
-                ),
+              // 2. Unified Interactive Pipeline Stage Bar (Replaces duplicate TabBar + KPI cards)
+              _buildUnifiedPipelineBar(
+                context,
+                pendingPoCount,
+                dockCount,
+                qcCount,
+                putawayCount,
+                archetype,
+                isDark,
+                colorScheme,
               ),
               AppGap.h16,
 
-              // 4. Active Tab Content View (Zero hardcoded height, natural scrolling)
-              _buildActiveTabView(context, _tabController.index, pos, putawayTasks, isDark, colorScheme),
+              // 3. Search & Filter Utility Toolbar
+              _buildUtilityToolbar(context, isDark, colorScheme),
+              AppGap.h16,
+
+              // 4. Active Stage List Content
+              _buildActiveStageContent(
+                context,
+                pos,
+                putawayTasks,
+                isDark,
+                colorScheme,
+              ),
             ],
           ),
         ),
@@ -177,9 +98,93 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
   }
 
   // ---------------------------------------------------------------------------
-  // KPI PIPELINE GRID
+  // 1. TOP HEADER BAR
   // ---------------------------------------------------------------------------
-  Widget _buildKpiSection(
+  Widget _buildHeaderBar(
+    BuildContext context,
+    dynamic archetype,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
+
+        final titleSection = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: [
+                Text(
+                  'Inbound Receiving & POs',
+                  style: AppTypography.headlineLarge.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                  decoration: BoxDecoration(
+                    color: archetype.brandColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppRadii.r4),
+                    border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    archetype.name,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: archetype.brandColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            AppGap.h4,
+            Text(
+              'Dock intake, QC inspection gate & directed putaway for ${archetype.name}',
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
+            ),
+          ],
+        );
+
+        final newPoButton = ElevatedButton.icon(
+          onPressed: () => PoFormModal.show(context),
+          icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
+          label: const Text('New Purchase Order'),
+        );
+
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleSection,
+              AppGap.h12,
+              SizedBox(width: double.infinity, child: newPoButton),
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: titleSection),
+            AppGap.w16,
+            newPoButton,
+          ],
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. UNIFIED INTERACTIVE PIPELINE STAGE BAR
+  // ---------------------------------------------------------------------------
+  Widget _buildUnifiedPipelineBar(
     BuildContext context,
     int pendingPoCount,
     int dockCount,
@@ -189,57 +194,57 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    final cards = [
+    final stages = [
       {
-        'title': '1. PO Pipeline',
+        'stage': '1',
+        'title': 'PO Pipeline',
         'count': '$pendingPoCount Orders',
         'icon': Icons.description_outlined,
         'color': AppColors.info,
-        'tabIndex': 0,
       },
       {
-        'title': '2. Dock Intake',
+        'stage': '2',
+        'title': 'Dock Intake',
         'count': '$dockCount Shipments',
         'icon': Icons.local_shipping_outlined,
         'color': AppColors.warning,
-        'tabIndex': 1,
       },
       {
-        'title': '3. QC Inspection',
+        'stage': '3',
+        'title': 'QC Inspection',
         'count': '$qcCount Batches',
         'icon': Icons.fact_check_outlined,
         'color': archetype.brandColor as Color,
-        'tabIndex': 2,
       },
       {
-        'title': '4. Putaway Tasks',
+        'stage': '4',
+        'title': 'Directed Putaway',
         'count': '$putawayCount Tasks',
         'icon': Icons.move_to_inbox_outlined,
         'color': AppColors.success,
-        'tabIndex': 3,
       },
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 960;
+        final isNarrow = constraints.maxWidth < 720;
 
         if (isNarrow) {
           return Column(
             children: [
               Row(
                 children: [
-                  Expanded(child: _buildKpiCard(context, cards[0], isDark, colorScheme)),
-                  AppGap.w12,
-                  Expanded(child: _buildKpiCard(context, cards[1], isDark, colorScheme)),
+                  Expanded(child: _buildStageTile(0, stages[0], isDark, colorScheme)),
+                  AppGap.w8,
+                  Expanded(child: _buildStageTile(1, stages[1], isDark, colorScheme)),
                 ],
               ),
-              AppGap.h12,
+              AppGap.h8,
               Row(
                 children: [
-                  Expanded(child: _buildKpiCard(context, cards[2], isDark, colorScheme)),
-                  AppGap.w12,
-                  Expanded(child: _buildKpiCard(context, cards[3], isDark, colorScheme)),
+                  Expanded(child: _buildStageTile(2, stages[2], isDark, colorScheme)),
+                  AppGap.w8,
+                  Expanded(child: _buildStageTile(3, stages[3], isDark, colorScheme)),
                 ],
               ),
             ],
@@ -247,127 +252,256 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
         }
 
         return Row(
-          children: cards.map((c) {
+          children: List.generate(stages.length, (index) {
             return Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                child: _buildKpiCard(context, c, isDark, colorScheme),
+                padding: EdgeInsets.only(
+                  right: index < stages.length - 1 ? AppSpacing.sm : 0,
+                ),
+                child: _buildStageTile(index, stages[index], isDark, colorScheme),
               ),
             );
-          }).toList(),
+          }),
         );
       },
     );
   }
 
-  Widget _buildKpiCard(
-    BuildContext context,
+  Widget _buildStageTile(
+    int index,
     Map<String, dynamic> data,
     bool isDark,
     ColorScheme colorScheme,
   ) {
+    final isSelected = _activeStageIndex == index;
     final color = data['color'] as Color;
-    final isSelected = _tabController.index == (data['tabIndex'] as int);
 
-    return InkWell(
-      onTap: () => _tabController.animateTo(data['tabIndex'] as int),
+    return Material(
+      color: isSelected
+          ? color.withValues(alpha: isDark ? 0.20 : 0.12)
+          : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
       borderRadius: BorderRadius.circular(AppRadii.r12),
-      child: Container(
-        padding: AppPadding.p12,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(AppRadii.r12),
-          border: Border.all(
-            color: isSelected ? color : colorScheme.outline,
-            width: isSelected ? 2 : 1,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _activeStageIndex = index;
+          });
+        },
+        borderRadius: BorderRadius.circular(AppRadii.r12),
+        child: Container(
+          padding: AppPadding.p12,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadii.r12),
+            border: Border.all(
+              color: isSelected ? color : colorScheme.outline,
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadii.r4),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isSelected ? color : color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    data['icon'] as IconData,
+                    size: 18,
+                    color: isSelected ? Colors.white : color,
                   ),
-                  child: Icon(data['icon'] as IconData, size: AppSizes.iconSm, color: color),
                 ),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+              ),
+              AppGap.w8,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'STAGE ${data['stage']}',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 9,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Text(
+                      data['title'] as String,
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      data['count'] as String,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            AppGap.h8,
-            Text(
-              data['count'] as String,
-              style: AppTypography.headlineSmall.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            AppGap.h4,
-            Text(
-              data['title'] as String,
-              style: AppTypography.labelSmall.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // TAB CONTENT SELECTOR
+  // 3. SEARCH & FILTER UTILITY TOOLBAR
   // ---------------------------------------------------------------------------
-  Widget _buildActiveTabView(
+  Widget _buildUtilityToolbar(BuildContext context, bool isDark, ColorScheme colorScheme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+
+        final searchField = TextField(
+          controller: _searchController,
+          onChanged: (v) => setState(() => _searchQuery = v.trim().toLowerCase()),
+          decoration: InputDecoration(
+            hintText: 'Search by PO#, Supplier, SKU, or Product...',
+            prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear_rounded, size: 16),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                  )
+                : null,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          ),
+        );
+
+        final filterDropdown = DropdownButtonHideUnderline(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppRadii.r8),
+              border: Border.all(color: colorScheme.outline),
+            ),
+            child: DropdownButton<InboundStatus?>(
+              value: _statusFilter,
+              hint: Text('Status: All', style: AppTypography.bodySmall),
+              isDense: true,
+              items: [
+                DropdownMenuItem<InboundStatus?>(
+                  value: null,
+                  child: Text('Status: All', style: AppTypography.bodySmall),
+                ),
+                ...InboundStatus.values.map((s) {
+                  return DropdownMenuItem<InboundStatus?>(
+                    value: s,
+                    child: Text(s.label, style: AppTypography.bodySmall),
+                  );
+                }),
+              ],
+              onChanged: (val) => setState(() => _statusFilter = val),
+            ),
+          ),
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              searchField,
+              AppGap.h8,
+              Align(alignment: Alignment.centerLeft, child: filterDropdown),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: searchField),
+            AppGap.w12,
+            filterDropdown,
+          ],
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. ACTIVE STAGE CONTENT
+  // ---------------------------------------------------------------------------
+  Widget _buildActiveStageContent(
     BuildContext context,
-    int index,
     List<PurchaseOrder> pos,
     List<PutawayTask> putawayTasks,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    switch (index) {
+    switch (_activeStageIndex) {
       case 0:
-        return _buildPoListView(context, pos, isDark, colorScheme);
+        return _buildPoStage(context, pos, isDark, colorScheme);
       case 1:
-        return _buildDockReceivingView(context, pos, isDark, colorScheme);
+        return _buildDockStage(context, pos, isDark, colorScheme);
       case 2:
-        return _buildQcGateView(context, pos, isDark, colorScheme);
+        return _buildQcStage(context, pos, isDark, colorScheme);
       case 3:
       default:
-        return _buildPutawayView(context, putawayTasks, isDark, colorScheme);
+        return _buildPutawayStage(context, putawayTasks, isDark, colorScheme);
     }
   }
 
   // ---------------------------------------------------------------------------
-  // 1. PURCHASE ORDERS LIST VIEW
+  // STAGE 0: PO PIPELINE
   // ---------------------------------------------------------------------------
-  Widget _buildPoListView(
+  Widget _buildPoStage(
     BuildContext context,
     List<PurchaseOrder> pos,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    if (pos.isEmpty) {
+    var filtered = pos;
+
+    if (_statusFilter != null) {
+      filtered = filtered.where((p) => p.status == _statusFilter).toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((p) {
+        final matchPo = p.poNumber.toLowerCase().contains(_searchQuery);
+        final matchVendor = p.vendorName.toLowerCase().contains(_searchQuery);
+        final matchItems = p.items.any((i) =>
+            i.productName.toLowerCase().contains(_searchQuery) ||
+            i.sku.toLowerCase().contains(_searchQuery));
+        return matchPo || matchVendor || matchItems;
+      }).toList();
+    }
+
+    if (filtered.isEmpty) {
       return _buildEmptyState(
         icon: Icons.description_outlined,
-        title: 'No Purchase Orders found',
-        subtitle: 'Create a new purchase order to start inbound intake.',
-        actionLabel: 'Create Purchase Order',
-        onAction: () => PoFormModal.show(context),
+        title: _searchQuery.isNotEmpty ? 'No Matching Purchase Orders' : 'No Purchase Orders Found',
+        subtitle: _searchQuery.isNotEmpty
+            ? 'Try changing your search terms or status filters.'
+            : 'Create a new purchase order to start inbound intake.',
+        actionLabel: _searchQuery.isNotEmpty ? 'Clear Filters' : 'Create Purchase Order',
+        onAction: _searchQuery.isNotEmpty
+            ? () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _statusFilter = null;
+                });
+              }
+            : () => PoFormModal.show(context),
         colorScheme: colorScheme,
       );
     }
@@ -375,145 +509,44 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: pos.length,
+      itemCount: filtered.length,
       separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
-        final po = pos[index];
-        final canDockReceive = po.status == InboundStatus.inTransit || po.status == InboundStatus.approved;
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth < 600;
-
-            return Container(
-              padding: AppPadding.p16,
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadii.r12),
-                border: Border.all(color: colorScheme.outline),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: AppSizes.buttonHeightSm,
-                        height: AppSizes.buttonHeightSm,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppRadii.r8),
-                        ),
-                        child: Icon(Icons.receipt_long_rounded, color: colorScheme.primary, size: AppSizes.iconSm),
-                      ),
-                      AppGap.w12,
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: AppSpacing.sm,
-                              runSpacing: AppSpacing.xs,
-                              children: [
-                                Text(
-                                  po.poNumber,
-                                  style: AppTypography.bodyLarge.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                                  ),
-                                ),
-                                _buildStatusChip(po.status, colorScheme),
-                              ],
-                            ),
-                            AppGap.h4,
-                            Text(
-                              'Supplier: ${po.vendorName}',
-                              style: AppTypography.bodyMedium.copyWith(
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${po.items.length} line items  •  ${po.totalOrderedUnits.toStringAsFixed(0)} units total',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (!isNarrow) ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '\$${po.totalAmount.toStringAsFixed(2)}',
-                              style: AppTypography.bodyLarge.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            if (canDockReceive) ...[
-                              AppGap.h8,
-                              ElevatedButton.icon(
-                                onPressed: () => _handleDockReceive(po),
-                                icon: const Icon(Icons.input_rounded, size: AppSizes.iconSm),
-                                label: const Text('Dock Receive'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (isNarrow) ...[
-                    AppGap.h12,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total: \$${po.totalAmount.toStringAsFixed(2)}',
-                          style: AppTypography.bodyLarge.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        if (canDockReceive)
-                          ElevatedButton.icon(
-                            onPressed: () => _handleDockReceive(po),
-                            icon: const Icon(Icons.input_rounded, size: AppSizes.iconSm),
-                            label: const Text('Dock Receive'),
-                          ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
+        final po = filtered[index];
+        return InboundPoCard(
+          po: po,
+          onDockReceive: () => _handleDockReceive(po),
         );
       },
     );
   }
 
   // ---------------------------------------------------------------------------
-  // 2. DOCK RECEIVING VIEW
+  // STAGE 1: DOCK RECEIVING
   // ---------------------------------------------------------------------------
-  Widget _buildDockReceivingView(
+  Widget _buildDockStage(
     BuildContext context,
     List<PurchaseOrder> pos,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    final dockPos = pos.where((p) => p.status == InboundStatus.atDock || p.status == InboundStatus.receiving || p.status == InboundStatus.inTransit).toList();
+    var dockPos = pos.where((p) => p.status == InboundStatus.atDock || p.status == InboundStatus.receiving || p.status == InboundStatus.inTransit).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      dockPos = dockPos.where((p) {
+        final matchPo = p.poNumber.toLowerCase().contains(_searchQuery);
+        final matchVendor = p.vendorName.toLowerCase().contains(_searchQuery);
+        final matchItems = p.items.any((i) =>
+            i.productName.toLowerCase().contains(_searchQuery) ||
+            i.sku.toLowerCase().contains(_searchQuery));
+        return matchPo || matchVendor || matchItems;
+      }).toList();
+    }
 
     if (dockPos.isEmpty) {
       return _buildEmptyState(
         icon: Icons.local_shipping_outlined,
-        title: 'No shipments waiting at Dock bays',
+        title: 'No Shipments Waiting at Dock Bays',
         subtitle: 'All in-transit purchase orders have been received at dock.',
         colorScheme: colorScheme,
       );
@@ -526,93 +559,35 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
       separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = dockPos[index];
-
-        return Container(
-          padding: AppPadding.p16,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadii.r12),
-            border: Border.all(color: colorScheme.outline),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                    child: Text(
-                      'DOCK: ${po.receivingDockId ?? "Dock Staging Bay 01"}',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  _buildStatusChip(po.status, colorScheme),
-                ],
-              ),
-              const Divider(height: AppSpacing.lg),
-              Text(
-                '${po.poNumber} — ${po.vendorName}',
-                style: AppTypography.bodyLarge.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-              AppGap.h8,
-              ...po.items.map((item) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${item.productName} (${item.sku})',
-                          style: AppTypography.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        '${item.orderedQty} ${item.uom}',
-                        style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              AppGap.h16,
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton.icon(
-                  onPressed: () => _handleDockReceive(po),
-                  icon: const Icon(Icons.check_rounded, size: AppSizes.iconSm),
-                  label: const Text('Scan & Confirm GRN Intake'),
-                ),
-              ),
-            ],
-          ),
+        return InboundDockCard(
+          po: po,
+          onScanAndConfirm: () => _handleDockReceive(po),
         );
       },
     );
   }
 
   // ---------------------------------------------------------------------------
-  // 3. QC GATE VIEW
+  // STAGE 2: QC INSPECTION GATE
   // ---------------------------------------------------------------------------
-  Widget _buildQcGateView(
+  Widget _buildQcStage(
     BuildContext context,
     List<PurchaseOrder> pos,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    final qcPos = pos.where((p) => p.status == InboundStatus.qcPending || p.status == InboundStatus.atDock).toList();
+    var qcPos = pos.where((p) => p.status == InboundStatus.qcPending || p.status == InboundStatus.atDock).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      qcPos = qcPos.where((p) {
+        final matchPo = p.poNumber.toLowerCase().contains(_searchQuery);
+        final matchVendor = p.vendorName.toLowerCase().contains(_searchQuery);
+        final matchItems = p.items.any((i) =>
+            i.productName.toLowerCase().contains(_searchQuery) ||
+            i.sku.toLowerCase().contains(_searchQuery));
+        return matchPo || matchVendor || matchItems;
+      }).toList();
+    }
 
     if (qcPos.isEmpty) {
       return _buildEmptyState(
@@ -630,90 +605,31 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
       separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = qcPos[index];
-        final isHealthcare = po.archetypeId == 'healthcare_pharma';
-
-        return Container(
-          padding: AppPadding.p16,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadii.r12),
-            border: Border.all(color: colorScheme.outline),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      Text(
-                        po.poNumber,
-                        style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      if (isHealthcare)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppRadii.r4),
-                          ),
-                          child: Text(
-                            'DUAL-WITNESS MANDATORY',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  _buildStatusChip(po.status, colorScheme),
-                ],
-              ),
-              AppGap.h4,
-              Text(
-                'Supplier: ${po.vendorName} • Arrived at: ${po.receivingDockId ?? "Dock-01"}',
-                style: AppTypography.bodySmall.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                ),
-              ),
-              const Divider(height: AppSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${po.items.length} items staged for inspection',
-                    style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => QcInspectionModal.show(context, purchaseOrder: po),
-                    icon: const Icon(Icons.fact_check_rounded, size: AppSizes.iconSm),
-                    label: const Text('Open QC Gate'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
+        return InboundQcCard(po: po);
       },
     );
   }
 
   // ---------------------------------------------------------------------------
-  // 4. DIRECTED PUTAWAY VIEW
+  // STAGE 3: DIRECTED PUTAWAY
   // ---------------------------------------------------------------------------
-  Widget _buildPutawayView(
+  Widget _buildPutawayStage(
     BuildContext context,
     List<PutawayTask> tasks,
     bool isDark,
     ColorScheme colorScheme,
   ) {
-    if (tasks.isEmpty) {
+    var filtered = tasks;
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((t) {
+        return t.productName.toLowerCase().contains(_searchQuery) ||
+            t.sku.toLowerCase().contains(_searchQuery) ||
+            t.suggestedLocation.toLowerCase().contains(_searchQuery);
+      }).toList();
+    }
+
+    if (filtered.isEmpty) {
       return _buildEmptyState(
         icon: Icons.move_to_inbox_outlined,
         title: 'No Active Putaway Tasks',
@@ -725,93 +641,11 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: tasks.length,
+      itemCount: filtered.length,
       separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
-        final task = tasks[index];
-        final isDone = task.isCompleted;
-
-        return Container(
-          padding: AppPadding.p16,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadii.r12),
-            border: Border.all(
-              color: isDone ? colorScheme.outline : colorScheme.primary.withValues(alpha: 0.5),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: AppSizes.buttonHeightSm,
-                height: AppSizes.buttonHeightSm,
-                decoration: BoxDecoration(
-                  color: isDone
-                      ? colorScheme.surfaceContainerHighest
-                      : colorScheme.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isDone ? Icons.check_circle_rounded : Icons.navigation_outlined,
-                  color: isDone ? colorScheme.outline : colorScheme.primary,
-                  size: AppSizes.iconSm + 4,
-                ),
-              ),
-              AppGap.w12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.xs,
-                      children: [
-                        Text(
-                          task.productName,
-                          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppRadii.r4),
-                          ),
-                          child: Text(
-                            task.zoneType.name.toUpperCase(),
-                            style: AppTypography.labelSmall.copyWith(
-                              color: colorScheme.secondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    AppGap.h4,
-                    Text(
-                      'Suggested Bin: ${task.suggestedLocation} (${task.quantity} ${task.uom})',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (task.confirmedLocation != null) ...[
-                      const SizedBox(height: 2),
-                      Text('Confirmed at: ${task.confirmedLocation}', style: AppTypography.bodySmall),
-                    ],
-                  ],
-                ),
-              ),
-              if (!isDone)
-                ElevatedButton.icon(
-                  onPressed: () => PutawayConfirmModal.show(context, task: task),
-                  icon: const Icon(Icons.arrow_forward_rounded, size: AppSizes.iconSm),
-                  label: const Text('Confirm Bin'),
-                ),
-            ],
-          ),
-        );
+        final task = filtered[index];
+        return InboundPutawayCard(task: task);
       },
     );
   }
@@ -819,7 +653,6 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
   // ---------------------------------------------------------------------------
   // HELPER SUB-COMPONENTS
   // ---------------------------------------------------------------------------
-
   Widget _buildEmptyState({
     required IconData icon,
     required String title,
@@ -840,7 +673,7 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
         children: [
           Icon(icon, size: AppSizes.buttonHeightMd, color: colorScheme.primary.withValues(alpha: 0.5)),
           AppGap.h16,
-          Text(title, style: AppTypography.headlineSmall),
+          Text(title, style: AppTypography.headlineSmall, textAlign: TextAlign.center),
           AppGap.h4,
           Text(subtitle, style: AppTypography.bodySmall, textAlign: TextAlign.center),
           if (actionLabel != null && onAction != null) ...[
@@ -856,49 +689,6 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     );
   }
 
-  Widget _buildStatusChip(InboundStatus status, ColorScheme colorScheme) {
-    Color bg;
-    Color fg;
-
-    switch (status) {
-      case InboundStatus.draft:
-      case InboundStatus.inTransit:
-        bg = AppColors.info.withValues(alpha: 0.15);
-        fg = AppColors.info;
-        break;
-      case InboundStatus.approved:
-      case InboundStatus.atDock:
-      case InboundStatus.receiving:
-        bg = AppColors.warning.withValues(alpha: 0.15);
-        fg = AppColors.warning;
-        break;
-      case InboundStatus.qcPending:
-        bg = colorScheme.primary.withValues(alpha: 0.15);
-        fg = colorScheme.primary;
-        break;
-      case InboundStatus.qcPassed:
-      case InboundStatus.putawayReady:
-      case InboundStatus.completed:
-        bg = AppColors.success.withValues(alpha: 0.15);
-        fg = AppColors.success;
-        break;
-      case InboundStatus.qcFailed:
-      case InboundStatus.cancelled:
-        bg = AppColors.error.withValues(alpha: 0.15);
-        fg = AppColors.error;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadii.r4)),
-      child: Text(
-        status.label,
-        style: AppTypography.labelSmall.copyWith(color: fg, fontWeight: FontWeight.bold, fontSize: 10),
-      ),
-    );
-  }
-
   Future<void> _handleDockReceive(PurchaseOrder po) async {
     final updatedItems = po.items.map((i) => i.copyWith(receivedQty: i.orderedQty)).toList();
     await ref.read(inboundNotifierProvider.notifier).receiveDockGoods(
@@ -906,6 +696,8 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
       receivedItems: updatedItems,
       dockId: po.receivingDockId ?? 'Dock Staging Bay 01',
     );
-    _tabController.animateTo(2); // Jump to QC
+    setState(() {
+      _activeStageIndex = 2; // Jump directly to QC inspection stage
+    });
   }
 }

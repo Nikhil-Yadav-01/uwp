@@ -13,6 +13,8 @@ abstract class IInboundRepository {
 
   Future<Result<PurchaseOrder>> createPurchaseOrder(PurchaseOrder po);
 
+  Future<Result<PurchaseOrder>> updatePurchaseOrder(PurchaseOrder po);
+
   Future<Result<PurchaseOrder>> updatePurchaseOrderStatus(
     String poId,
     InboundStatus newStatus,

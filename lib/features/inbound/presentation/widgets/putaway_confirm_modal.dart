@@ -51,157 +51,186 @@ class _PutawayConfirmModalState extends ConsumerState<PutawayConfirmModal> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Header
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 450;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.xs + 2),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppRadii.r8),
-              ),
-              child: Icon(Icons.move_to_inbox_rounded, color: colorScheme.primary, size: AppSizes.iconMd),
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppRadii.r8),
+                  ),
+                  child: Icon(Icons.move_to_inbox_rounded, color: colorScheme.primary, size: AppSizes.iconMd),
+                ),
+                AppGap.w12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Confirm Directed Putaway',
+                        style: AppTypography.headlineSmall.copyWith(
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      AppGap.h4,
+                      Text(
+                        'Task: ${widget.task.id}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded, size: AppSizes.iconSm + 4),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
             ),
-            AppGap.w12,
-            Expanded(
+            const Divider(height: AppSpacing.lg),
+
+            // Item Details Card
+            Container(
+              padding: AppPadding.p12,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: BorderRadius.circular(AppRadii.r8),
+                border: Border.all(color: colorScheme.outline),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Confirm Directed Putaway',
-                    style: AppTypography.headlineSmall.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    widget.task.productName,
+                    style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
                   ),
                   AppGap.h4,
                   Text(
-                    'Task: ${widget.task.id}',
+                    'SKU: ${widget.task.sku} • Qty: ${widget.task.quantity} ${widget.task.uom}',
                     style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                     ),
                   ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.close_rounded, size: AppSizes.iconSm + 4),
-              visualDensity: VisualDensity.compact,
-            ),
-          ],
-        ),
-        const Divider(height: AppSpacing.lg),
-
-        // Item Details Card
-        Container(
-          padding: AppPadding.p12,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(AppRadii.r8),
-            border: Border.all(color: colorScheme.outline),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.task.productName,
-                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-              ),
-              AppGap.h4,
-              Text(
-                'SKU: ${widget.task.sku} • Qty: ${widget.task.quantity} ${widget.task.uom}',
-                style: AppTypography.bodySmall.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                ),
-              ),
-              AppGap.h8,
-              Wrap(
-                spacing: AppSpacing.sm,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                    child: Text(
-                      widget.task.zoneType.name.toUpperCase(),
-                      style: AppTypography.labelSmall.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.bold,
+                  AppGap.h8,
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(AppRadii.r4),
+                        ),
+                        child: Text(
+                          widget.task.zoneType.name.toUpperCase(),
+                          style: AppTypography.labelSmall.copyWith(
+                            color: colorScheme.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Text(
-                    'Source: ${widget.task.sourceDockLocation}',
-                    style: AppTypography.bodySmall,
+                      Text(
+                        'Source: ${widget.task.sourceDockLocation}',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-        AppGap.h16,
-
-        TextFormField(
-          controller: _locationController,
-          decoration: const InputDecoration(
-            labelText: 'Target Bin / Storage Location *',
-            prefixIcon: Icon(Icons.location_on_outlined, size: AppSizes.iconSm),
-            helperText: 'Verified via physical shelf barcode scan or confirmation',
-          ),
-        ),
-        AppGap.h12,
-
-        TextFormField(
-          controller: _operatorController,
-          decoration: const InputDecoration(
-            labelText: 'Putaway Operator Name',
-            prefixIcon: Icon(Icons.person_outline, size: AppSizes.iconSm),
-          ),
-        ),
-        AppGap.h20,
-
-        // Actions
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
             ),
-            AppGap.w12,
-            ElevatedButton.icon(
-              onPressed: () async {
-                final loc = _locationController.text.trim();
-                final op = _operatorController.text.trim();
-                final success = await ref.read(inboundNotifierProvider.notifier).confirmPutawayTask(
-                  taskId: widget.task.id,
-                  confirmedLocation: loc,
-                  operatorName: op,
-                );
-                if (context.mounted && success) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Putaway confirmed to $loc'),
-                      backgroundColor: colorScheme.primary,
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.check_circle_rounded, size: AppSizes.iconSm),
-              label: const Text('Confirm Bin Putaway'),
+            AppGap.h16,
+
+            TextFormField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Target Bin / Storage Location *',
+                prefixIcon: Icon(Icons.location_on_outlined, size: AppSizes.iconSm),
+                helperText: 'Verified via physical shelf barcode scan or confirmation',
+              ),
             ),
+            AppGap.h12,
+
+            TextFormField(
+              controller: _operatorController,
+              decoration: const InputDecoration(
+                labelText: 'Putaway Operator Name',
+                prefixIcon: Icon(Icons.person_outline, size: AppSizes.iconSm),
+              ),
+            ),
+            AppGap.h20,
+
+            // Adaptive Actions
+            if (isNarrow)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => _handleConfirm(colorScheme),
+                    icon: const Icon(Icons.check_circle_rounded, size: AppSizes.iconSm),
+                    label: const Text('Confirm Bin Putaway'),
+                  ),
+                  AppGap.h8,
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  AppGap.w12,
+                  ElevatedButton.icon(
+                    onPressed: () => _handleConfirm(colorScheme),
+                    icon: const Icon(Icons.check_circle_rounded, size: AppSizes.iconSm),
+                    label: const Text('Confirm Bin Putaway'),
+                  ),
+                ],
+              ),
           ],
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  Future<void> _handleConfirm(ColorScheme colorScheme) async {
+    final loc = _locationController.text.trim();
+    final op = _operatorController.text.trim();
+    final success = await ref.read(inboundNotifierProvider.notifier).confirmPutawayTask(
+      taskId: widget.task.id,
+      confirmedLocation: loc,
+      operatorName: op,
+    );
+    if (mounted && success) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Putaway confirmed to $loc'),
+          backgroundColor: colorScheme.primary,
+        ),
+      );
+    }
   }
 }

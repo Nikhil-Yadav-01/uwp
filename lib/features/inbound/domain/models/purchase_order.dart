@@ -154,6 +154,7 @@ class PurchaseOrder {
   double get totalOrderedUnits => items.fold(0.0, (sum, item) => sum + item.orderedQty);
   double get totalReceivedUnits => items.fold(0.0, (sum, item) => sum + item.receivedQty);
   double get receivingProgress => totalOrderedUnits == 0 ? 0.0 : (totalReceivedUnits / totalOrderedUnits).clamp(0.0, 1.0);
+  bool get isFullyReceived => totalOrderedUnits > 0 && totalReceivedUnits >= totalOrderedUnits;
 
   PurchaseOrder copyWith({
     String? id,
