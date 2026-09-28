@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/app_radii.dart';
+import '../../../../core/design/app_sizes.dart';
 import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
+import '../../../../core/responsive/app_breakpoints.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/product.dart';
 import '../controllers/product_controller.dart';
@@ -41,97 +45,194 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
     final categories = ['All', 'Raw Materials', 'Finished Goods', 'Packaging', 'Controlled Stock', 'General'];
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Responsive.constrainedContent(
+        child: SingleChildScrollView(
+          padding: context.isMobile ? AppSpacing.pagePaddingMobile : AppSpacing.pagePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            // Responsive Header Bar
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Master Inventory Catalog',
+                        style: AppTypography.headlineLarge.copyWith(
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      AppGap.h4,
+                      Text(
+                        'Polymorphic schema, wrappers & variants adapting to ${archetype.name}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      AppGap.h12,
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _navigateToForm(context),
+                          icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
+                          label: Text('Add ${archetype.name} Item'),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Master Inventory Catalog',
-                      style: AppTypography.headlineLarge.copyWith(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Master Inventory Catalog',
+                            style: AppTypography.headlineLarge.copyWith(
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          AppGap.h4,
+                          Text(
+                            'Polymorphic schema, wrappers & variants adapting to ${archetype.name}',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    AppGap.h4,
-                    Text(
-                      'Polymorphic schema, wrappers & variants adapting to ${archetype.name}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                      ),
+                    AppGap.w16,
+                    ElevatedButton.icon(
+                      onPressed: () => _navigateToForm(context),
+                      icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
+                      label: Text('Add ${archetype.name} Item'),
                     ),
                   ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _navigateToForm(context),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text('Add ${archetype.name} Item'),
-                ),
-              ],
+                );
+              },
             ),
             AppGap.h20,
 
-            // Search & Filter Bar
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadii.r12),
-                border: Border.all(color: colorScheme.outline),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search items by name, SKU, or scan barcode...',
-                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  catalogNotifier.setSearchQuery('');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        filled: false,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onChanged: catalogNotifier.setSearchQuery,
-                    ),
+            // Responsive Search & Filter Bar
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 520;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppRadii.r12),
+                    border: Border.all(color: colorScheme.outline),
                   ),
-                  AppGap.w12,
-                  // Low Stock Toggle Button
-                  FilterChip(
-                    label: Text(
-                      'Low Stock Alert',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    selected: catalogState.lowStockOnly,
-                    selectedColor: AppColors.warning,
-                    onSelected: (_) => catalogNotifier.toggleLowStockFilter(),
-                    avatar: Icon(
-                      Icons.warning_amber_rounded,
-                      size: 16,
-                      color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
-                    ),
-                  ),
-                ],
-              ),
+                  child: isNarrow
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: _searchController,
+                              decoration: InputDecoration(
+                                hintText: 'Search items by name, SKU, or barcode...',
+                                prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm + AppSpacing.xs),
+                                isDense: true,
+                                suffixIcon: _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear_rounded, size: AppSizes.iconSm),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          catalogNotifier.setSearchQuery('');
+                                        },
+                                      )
+                                    : null,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                filled: false,
+                                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                              ),
+                              onChanged: catalogNotifier.setSearchQuery,
+                            ),
+                            const Divider(height: AppSpacing.sm),
+                            FilterChip(
+                              showCheckmark: false,
+                              label: Text(
+                                'Low Stock Alert',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              selected: catalogState.lowStockOnly,
+                              selectedColor: AppColors.warning,
+                              onSelected: (_) => catalogNotifier.toggleLowStockFilter(),
+                              avatar: Icon(
+                                Icons.warning_amber_rounded,
+                                size: AppSizes.iconSm,
+                                color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Search items by name, SKU, or scan barcode...',
+                                  prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm + AppSpacing.xs),
+                                  isDense: true,
+                                  suffixIcon: _searchController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear_rounded, size: AppSizes.iconSm),
+                                          padding: EdgeInsets.zero,
+                                          visualDensity: VisualDensity.compact,
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            catalogNotifier.setSearchQuery('');
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                                ),
+                                onChanged: catalogNotifier.setSearchQuery,
+                              ),
+                            ),
+                            AppGap.w12,
+                            // Low Stock Toggle Button
+                            FilterChip(
+                              showCheckmark: false,
+                              label: Text(
+                                'Low Stock Alert',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              selected: catalogState.lowStockOnly,
+                              selectedColor: AppColors.warning,
+                              onSelected: (_) => catalogNotifier.toggleLowStockFilter(),
+                              avatar: Icon(
+                                Icons.warning_amber_rounded,
+                                size: AppSizes.iconSm,
+                                color: catalogState.lowStockOnly ? Colors.white : AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                );
+              },
             ),
             AppGap.h12,
 
@@ -142,7 +243,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 children: categories.map((cat) {
                   final isSelected = catalogState.selectedCategory == cat;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: ChoiceChip(
                       label: Text(cat),
                       selected: isSelected,
@@ -158,14 +259,14 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
             if (catalogState.isLoading)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(40),
+                  padding: AppPadding.p32,
                   child: CircularProgressIndicator(),
                 ),
               )
             else if (catalogState.products.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(48),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppRadii.r12),
@@ -173,7 +274,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 ),
                 child: Column(
                   children: [
-                    Icon(archetype.icon, size: 48, color: colorScheme.primary.withValues(alpha: 0.5)),
+                    Icon(archetype.icon, size: AppSizes.buttonHeightMd, color: colorScheme.primary.withValues(alpha: 0.5)),
                     AppGap.h16,
                     Text('No products found matching filters', style: AppTypography.headlineSmall),
                     AppGap.h8,
@@ -184,7 +285,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                     AppGap.h16,
                     ElevatedButton.icon(
                       onPressed: () => _navigateToForm(context),
-                      icon: const Icon(Icons.add_rounded),
+                      icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
                       label: const Text('Create Item'),
                     ),
                   ],
@@ -209,6 +310,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
               ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -235,13 +337,12 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
       ),
       borderRadius: BorderRadius.circular(AppRadii.r12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: AppPadding.p16,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadii.r12),
           border: Border.all(
             color: product.isLowStock ? AppColors.warning.withValues(alpha: 0.5) : colorScheme.outline,
-            width: product.isLowStock ? 1.5 : 1.0,
           ),
         ),
         child: Column(
@@ -252,12 +353,12 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
               children: [
                 // Archetype Icon Badge
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: AppPadding.p12,
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppRadii.r8),
                   ),
-                  child: Icon(Icons.inventory_2_outlined, color: colorScheme.primary, size: 24),
+                  child: Icon(Icons.inventory_2_outlined, color: colorScheme.primary, size: AppSizes.iconMd),
                 ),
                 AppGap.w12,
                 Expanded(
@@ -285,10 +386,13 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                         ],
                       ),
                       AppGap.h4,
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.xs,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
                             decoration: BoxDecoration(
                               color: isDark
                                   ? AppColors.darkSurface
@@ -300,11 +404,8 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                               style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          AppGap.w8,
                           Text('SKU: ${product.sku}', style: AppTypography.bodySmall),
-                          AppGap.w8,
                           Text('•', style: AppTypography.bodySmall),
-                          AppGap.w8,
                           Text('Barcode: ${product.barcode}', style: AppTypography.bodySmall),
                         ],
                       ),
@@ -327,17 +428,17 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 ),
               ],
             ),
-            const Divider(height: 20),
+            const Divider(height: AppSpacing.md),
 
             // Dynamic Attribute Tags and Wrapper Indicators
             Wrap(
-              spacing: 8,
-              runSpacing: 6,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
               children: [
                 // Low Stock Badge
                 if (product.isLowStock)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadii.r4),
@@ -354,7 +455,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 // Matrix Variants Badge
                 if (product.hasVariants)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: AppColors.info.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadii.r4),
@@ -371,7 +472,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 // Recipe BOM Badge
                 if (product.isRecipeKit)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadii.r4),
@@ -389,7 +490,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 ...product.customAttributes.entries.map((entry) {
                   final label = entry.key.replaceAll('_', ' ').toUpperCase();
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.darkSurface.withValues(alpha: 0.5)
