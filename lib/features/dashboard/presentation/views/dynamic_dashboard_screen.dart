@@ -103,17 +103,37 @@ class DynamicDashboardScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // Section Title: Dynamic Industry KPIs
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Live Operational Metrics', style: AppTypography.h2),
-              Text(
-                'Auto-calculated for ${archetype.name}',
-                style: AppTypography.caption.copyWith(
-                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Live Operational Metrics', style: AppTypography.h2),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Auto-calculated for ${archetype.name}',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Live Operational Metrics', style: AppTypography.h2),
+                  Text(
+                    'Auto-calculated for ${archetype.name}',
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -126,15 +146,19 @@ class DynamicDashboardScreen extends ConsumerWidget {
                       ? 2
                       : 1;
 
+              final childAspectRatio = crossAxisCount == 1
+                  ? (constraints.maxWidth < 380 ? 2.1 : 2.3)
+                  : (crossAxisCount == 2 ? 1.6 : 1.7);
+
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: kpis.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: crossAxisCount == 1 ? 3.0 : 1.7,
+                  crossAxisSpacing: AppSpacing.md,
+                  mainAxisSpacing: AppSpacing.md,
+                  childAspectRatio: childAspectRatio,
                 ),
                 itemBuilder: (context, index) {
                   return kpiCard(kpis[index], isDark);

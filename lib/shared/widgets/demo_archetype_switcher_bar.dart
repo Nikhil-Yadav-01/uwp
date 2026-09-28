@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/archetypes/archetype_registry.dart';
 import '../../core/archetypes/models/archetype_definition.dart';
+import '../../core/design/app_sizes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -111,18 +112,19 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
         }).toList();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: context.isMobile
+            ? const EdgeInsets.all(AppSpacing.xs)
+            : const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: colorScheme.primary.withValues(alpha: 0.4),
-            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
               color: colorScheme.primary.withValues(alpha: 0.08),
-              blurRadius: 12,
+              blurRadius: AppSpacing.md,
               offset: const Offset(0, 4),
             ),
           ],
@@ -132,77 +134,40 @@ class DemoArchetypeSwitcherBar extends ConsumerWidget {
           children: [
             // Live Pulsing Indicator with Archetype Environmental Icon
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(AppSpacing.xs),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 activeArchetype.icon,
-                size: 14,
+                size: AppSizes.iconSm,
                 color: colorScheme.primary,
               ),
             ),
-            const SizedBox(width: 8),
-
-            // Label & Dropdown
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  /* Temporarily commented out:
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'PROTOTYPE SHOWCASE',
-                        style: AppTypography.caption.copyWith(
-                          color: colorScheme.primary,
+            if (!context.isMobile) ...[
+              const SizedBox(width: AppSpacing.sm),
+              // Label & Dropdown
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        activeArchetype.name,
+                        style: AppTypography.bodyBold.copyWith(
                           fontWeight: FontWeight.w700,
-                          fontSize: 9,
-                          letterSpacing: 0.8,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'LIVE MORPH',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.success,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  */
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          activeArchetype.name,
-                          style: AppTypography.bodyBold.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Icon(Icons.keyboard_arrow_down_rounded, size: AppSizes.iconSm),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

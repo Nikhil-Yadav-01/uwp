@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/design/app_sizes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
@@ -50,7 +51,7 @@ class ResponsiveShell extends ConsumerWidget {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(68),
+        preferredSize: const Size.fromHeight(AppSizes.buttonHeightLg + AppSpacing.sm),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -60,13 +61,19 @@ class ResponsiveShell extends ConsumerWidget {
               ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: SafeArea(
             child: Row(
               children: [
                 if (!isDesktop)
                   Builder(
                     builder: (innerContext) => IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: AppSizes.buttonHeightSm,
+                        minHeight: AppSizes.buttonHeightSm,
+                      ),
                       icon: const Icon(Icons.menu),
                       onPressed: () => Scaffold.of(innerContext).openDrawer(),
                     ),
@@ -74,14 +81,14 @@ class ResponsiveShell extends ConsumerWidget {
 
                 // Brand Logo
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
-                  child: const Icon(Icons.warehouse_outlined, color: AppColors.primary, size: 20),
+                  child: const Icon(Icons.warehouse_outlined, color: AppColors.primary, size: AppSizes.iconSm + AppSpacing.xs),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.sm),
                 if (!context.isMobile) ...[
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +97,7 @@ class ResponsiveShell extends ConsumerWidget {
                       Row(
                         children: [
                           Text('RUDRAKSHA', style: AppTypography.caption.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: AppColors.primary)),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           Text('WMS', style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.secondary)),
                         ],
                       ),
@@ -104,19 +111,23 @@ class ResponsiveShell extends ConsumerWidget {
                 const Spacer(),
 
                 // 1-Click Interactive Demo Archetype Switcher in Top Bar!
-                const Flexible(
-                  child: DemoArchetypeSwitcherBar(),
-                ),
-                const SizedBox(width: 8),
+                const DemoArchetypeSwitcherBar(),
+                const SizedBox(width: AppSpacing.xs),
 
                 // Theme Mode Toggle (System / Light / Dark)
                 IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: AppSizes.buttonHeightSm,
+                    minHeight: AppSizes.buttonHeightSm,
+                  ),
                   tooltip: 'Theme: ${themeMode == ThemeMode.system ? "System (Device)" : (themeMode == ThemeMode.dark ? "Dark" : "Light")}',
                   icon: Icon(
                     themeMode == ThemeMode.system
                         ? Icons.brightness_auto_outlined
                         : (themeMode == ThemeMode.dark ? Icons.dark_mode_outlined : Icons.light_mode_outlined),
-                    size: 20,
+                    size: AppSizes.iconSm + AppSpacing.xxs,
                   ),
                   onPressed: () {
                     final nextMode = themeMode == ThemeMode.system
@@ -125,7 +136,7 @@ class ResponsiveShell extends ConsumerWidget {
                     ref.read(appThemeModeProvider.notifier).state = nextMode;
                   },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.xs),
 
                 // Interactive RBAC User Role Switcher Badge
                 PopupMenuButton<UserRole>(
@@ -158,7 +169,7 @@ class ResponsiveShell extends ConsumerWidget {
                               backgroundColor: role.badgeColor,
                               child: Text(role.shortCode, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,18 +185,18 @@ class ResponsiveShell extends ConsumerWidget {
                               ),
                             ),
                             if (isSelected)
-                              Icon(Icons.check_rounded, size: 16, color: role.badgeColor),
+                              Icon(Icons.check_rounded, size: AppSizes.iconSm, color: role.badgeColor),
                           ],
                         ),
                       );
                     }).toList();
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.darkCard : AppColors.lightCard,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      border: Border.all(color: currentRole.badgeColor.withValues(alpha: 0.5), width: 1.5),
+                      border: Border.all(color: currentRole.badgeColor.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -196,7 +207,7 @@ class ResponsiveShell extends ConsumerWidget {
                           child: Text(currentRole.shortCode, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                         if (context.isDesktop) ...[
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
@@ -205,7 +216,7 @@ class ResponsiveShell extends ConsumerWidget {
                               Text(currentRole.permissionBadge, style: AppTypography.caption.copyWith(fontSize: 9, color: currentRole.badgeColor)),
                             ],
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: AppSpacing.xs),
                           const Icon(Icons.keyboard_arrow_down_rounded, size: 14),
                         ],
                       ],
@@ -223,7 +234,7 @@ class ResponsiveShell extends ConsumerWidget {
           // Collapsible Desktop Sidebar
           if (isDesktop)
             Container(
-              width: 240,
+              width: AppSizes.sidebarWidth,
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkCard : AppColors.lightCard,
                 border: Border(
