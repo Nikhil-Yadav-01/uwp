@@ -1,15 +1,28 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/design/app_radii.dart';
+import '../../../../core/design/app_sizes.dart';
+import '../../../../core/design/app_spacing.dart';
+import '../../../../core/design/app_typography.dart';
 import '../../../../core/inventory/domain/models/stock_adjustment.dart';
 import '../../../../core/inventory/presentation/controllers/inventory_ledger_controller.dart';
 import '../../../../core/master_data/data/repositories/in_memory_master_data_repository.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 
 class StockAdjustmentModal extends ConsumerStatefulWidget {
   const StockAdjustmentModal({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return ModalShell.show(
+      context: context,
+      maxWidth: 600,
+      child: const StockAdjustmentModal(),
+    );
+  }
 
   @override
   ConsumerState<StockAdjustmentModal> createState() => _StockAdjustmentModalState();
@@ -27,6 +40,9 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final state = ref.watch(archetypeProvider);
     final archetype = state.archetype;
     final products = state.products;
@@ -38,81 +54,113 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
 
     final selectedProduct = products.firstWhere(
       (p) => (p['sku'] as String?) == _selectedSku,
-      orElse: () => products.isNotEmpty ? products.first : {'name': 'Selected SKU', 'uom': 'unit'},
+      orElse: () => products.isNotEmpty ? products.first : {'name': 'Selected SKU', 'uom': 'units'},
     );
 
     final variance = _physicalQty - _systemQty;
+    final varianceColor = variance < 0 ? AppColors.error : AppColors.success;
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
-      child: Container(
-        width: 580,
-        padding: const EdgeInsets.all(24),
-        child: Form(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 480;
+
+        return Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppRadii.r8),
+                    ),
+                    child: const Icon(Icons.tune_rounded, color: AppColors.error, size: AppSizes.iconMd),
+                  ),
+                  AppGap.w12,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Record Stock Adjustment',
+                          style: AppTypography.headlineSmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
                         ),
-                        child: const Icon(Icons.tune_rounded, color: Colors.red, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Record Stock Adjustment', style: AppTypography.h2),
-                          Text('Log physical cycle count variance, damage or write-offs', style: AppTypography.caption),
-                        ],
-                      ),
-                    ],
+                        AppGap.h4,
+                        Text(
+                          'Log physical cycle count variance, damage or write-offs',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.close_rounded, size: AppSizes.iconSm + 4),
                     onPressed: () => Navigator.pop(context),
+                    visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),
-              const Divider(height: 28),
+              const Divider(height: AppSpacing.lg),
 
               // Warehouse & Location Row
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _warehouseId,
-                      decoration: const InputDecoration(labelText: 'Warehouse'),
-                      items: warehouses.map((wh) {
-                        return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setState(() => _warehouseId = val!),
+              if (isNarrow) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: _warehouseId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Warehouse'),
+                  items: warehouses.map((wh) {
+                    return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                  }).toList(),
+                  onChanged: (val) => setState(() => _warehouseId = val!),
+                ),
+                AppGap.h12,
+                TextFormField(
+                  initialValue: _locationId,
+                  decoration: const InputDecoration(labelText: 'Bin / Rack Location'),
+                  onSaved: (val) => _locationId = val ?? 'BIN-01',
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _warehouseId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Warehouse'),
+                        items: warehouses.map((wh) {
+                          return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                        }).toList(),
+                        onChanged: (val) => setState(() => _warehouseId = val!),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: _locationId,
-                      decoration: const InputDecoration(labelText: 'Bin / Rack Location'),
-                      onSaved: (val) => _locationId = val ?? 'BIN-01',
+                    AppGap.w12,
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: _locationId,
+                        decoration: const InputDecoration(labelText: 'Bin / Rack Location'),
+                        onSaved: (val) => _locationId = val ?? 'BIN-01',
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  ],
+                ),
+              ],
+              AppGap.h16,
 
               // Product Dropdown
               DropdownButtonFormField<String>(
                 initialValue: _selectedSku,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Product / SKU to Adjust'),
                 items: products.map((p) {
                   final sku = p['sku'] as String? ?? 'SKU';
@@ -121,83 +169,108 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
                 }).toList(),
                 onChanged: (val) => setState(() => _selectedSku = val!),
               ),
-              const SizedBox(height: 16),
+              AppGap.h16,
 
               // System vs Physical Count
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: _systemQty.toString(),
-                      decoration: InputDecoration(
-                        labelText: 'Current System Qty (${selectedProduct['uom'] ?? "units"})',
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      onChanged: (val) => setState(() => _systemQty = double.tryParse(val) ?? 0.0),
-                    ),
+              if (isNarrow) ...[
+                TextFormField(
+                  initialValue: _systemQty.toString(),
+                  decoration: InputDecoration(
+                    labelText: 'Current System Qty (${selectedProduct['uom'] ?? "units"})',
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: _physicalQty.toString(),
-                      decoration: InputDecoration(
-                        labelText: 'Actual Physical Count (${selectedProduct['uom'] ?? "units"})',
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      onChanged: (val) => setState(() => _physicalQty = double.tryParse(val) ?? 0.0),
-                    ),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (val) => setState(() => _systemQty = double.tryParse(val) ?? 0.0),
+                ),
+                AppGap.h12,
+                TextFormField(
+                  initialValue: _physicalQty.toString(),
+                  decoration: InputDecoration(
+                    labelText: 'Actual Physical Count (${selectedProduct['uom'] ?? "units"})',
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (val) => setState(() => _physicalQty = double.tryParse(val) ?? 0.0),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: _systemQty.toString(),
+                        decoration: InputDecoration(
+                          labelText: 'Current System Qty (${selectedProduct['uom'] ?? "units"})',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (val) => setState(() => _systemQty = double.tryParse(val) ?? 0.0),
+                      ),
+                    ),
+                    AppGap.w12,
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: _physicalQty.toString(),
+                        decoration: InputDecoration(
+                          labelText: 'Actual Physical Count (${selectedProduct['uom'] ?? "units"})',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (val) => setState(() => _physicalQty = double.tryParse(val) ?? 0.0),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              AppGap.h12,
 
               // Live Variance Indicator Card
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: variance < 0 ? Colors.red.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: variance < 0 ? Colors.red : Colors.green),
+                  color: varianceColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.r8),
+                  border: Border.all(color: varianceColor.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Calculated Variance:', style: AppTypography.bodyBold),
+                    Text('Calculated Variance:', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
                     Text(
                       '${variance >= 0 ? "+" : ""}$variance ${selectedProduct['uom'] ?? "units"}',
-                      style: AppTypography.h3.copyWith(color: variance < 0 ? Colors.red : Colors.green),
+                      style: AppTypography.headlineSmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: varianceColor,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              AppGap.h16,
 
               // Reason Code
               DropdownButtonFormField<AdjustmentReason>(
                 initialValue: _reason,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Adjustment Reason'),
                 items: AdjustmentReason.values.map((reason) {
                   return DropdownMenuItem(
                     value: reason,
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(reason.icon, size: 18),
-                        const SizedBox(width: 8),
-                        Text(reason.displayName),
+                        Icon(reason.icon, size: 16, color: colorScheme.primary),
+                        AppGap.w8,
+                        Flexible(child: Text(reason.displayName, maxLines: 1, overflow: TextOverflow.ellipsis)),
                       ],
                     ),
                   );
                 }).toList(),
                 onChanged: (val) => setState(() => _reason = val!),
               ),
-              const SizedBox(height: 16),
+              AppGap.h16,
 
               TextFormField(
                 initialValue: _notes,
                 decoration: const InputDecoration(labelText: 'Reason Notes / Auditor Signoff'),
                 onSaved: (val) => _notes = val ?? '',
               ),
-              const SizedBox(height: 24),
+              AppGap.h24,
 
               // Action Buttons
               Row(
@@ -207,8 +280,8 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Cancel'),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
+                  AppGap.w12,
+                  FilledButton.icon(
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
                         _formKey.currentState?.save();
@@ -241,12 +314,12 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Stock Adjustment ${adj.adjustmentNumber} recorded in Ledger'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.success,
                           ),
                         );
                       }
                     },
-                    style: ElevatedButton.styleFrom(
+                    style: FilledButton.styleFrom(
                       backgroundColor: archetype.brandColor,
                       foregroundColor: Colors.white,
                     ),
@@ -257,8 +330,8 @@ class _StockAdjustmentModalState extends ConsumerState<StockAdjustmentModal> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

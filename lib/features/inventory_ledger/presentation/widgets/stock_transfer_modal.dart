@@ -1,15 +1,28 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/design/app_radii.dart';
+import '../../../../core/design/app_sizes.dart';
+import '../../../../core/design/app_spacing.dart';
+import '../../../../core/design/app_typography.dart';
 import '../../../../core/inventory/domain/models/stock_transfer.dart';
 import '../../../../core/inventory/presentation/controllers/inventory_ledger_controller.dart';
 import '../../../../core/master_data/data/repositories/in_memory_master_data_repository.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 
 class StockTransferModal extends ConsumerStatefulWidget {
   const StockTransferModal({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return ModalShell.show(
+      context: context,
+      maxWidth: 640,
+      child: const StockTransferModal(),
+    );
+  }
 
   @override
   ConsumerState<StockTransferModal> createState() => _StockTransferModalState();
@@ -27,6 +40,9 @@ class _StockTransferModalState extends ConsumerState<StockTransferModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final state = ref.watch(archetypeProvider);
     final archetype = state.archetype;
     final products = state.products;
@@ -38,141 +54,219 @@ class _StockTransferModalState extends ConsumerState<StockTransferModal> {
 
     final selectedProduct = products.firstWhere(
       (p) => (p['sku'] as String?) == _selectedSku,
-      orElse: () => products.isNotEmpty ? products.first : {'name': 'Selected SKU', 'uom': 'unit'},
+      orElse: () => products.isNotEmpty ? products.first : {'name': 'Selected SKU', 'uom': 'units'},
     );
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
-      child: Container(
-        width: 600,
-        padding: const EdgeInsets.all(24),
-        child: Form(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 500;
+
+        return Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: archetype.brandColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                    decoration: BoxDecoration(
+                      color: archetype.brandColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppRadii.r8),
+                    ),
+                    child: Icon(Icons.swap_horiz_rounded, color: archetype.brandColor, size: AppSizes.iconMd),
+                  ),
+                  AppGap.w12,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'New Inter-Warehouse Transfer',
+                          style: AppTypography.headlineSmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
                         ),
-                        child: Icon(Icons.swap_horiz_rounded, color: archetype.brandColor, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('New Inter-Warehouse Transfer', style: AppTypography.h2),
-                          Text('Dispatch stock between physical depots with in-transit tracking', style: AppTypography.caption),
-                        ],
-                      ),
-                    ],
+                        AppGap.h4,
+                        Text(
+                          'Dispatch stock between physical depots with in-transit tracking',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.close_rounded, size: AppSizes.iconSm + 4),
                     onPressed: () => Navigator.pop(context),
+                    visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),
-              const Divider(height: 28),
+              const Divider(height: AppSpacing.lg),
 
-              // Warehouses Row
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _originWh,
-                      decoration: const InputDecoration(labelText: 'Origin Warehouse (Source)'),
-                      items: warehouses.map((wh) {
-                        return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setState(() => _originWh = val!),
+              // Warehouses Route Row
+              if (isNarrow) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: _originWh,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Origin Warehouse (Source)'),
+                  items: warehouses.map((wh) {
+                    return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                  }).toList(),
+                  onChanged: (val) => setState(() => _originWh = val!),
+                ),
+                AppGap.h8,
+                Center(
+                  child: Icon(Icons.arrow_downward_rounded, color: colorScheme.primary, size: AppSizes.iconSm),
+                ),
+                AppGap.h8,
+                DropdownButtonFormField<String>(
+                  initialValue: _destWh,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Destination Warehouse'),
+                  items: warehouses.map((wh) {
+                    return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                  }).toList(),
+                  onChanged: (val) => setState(() => _destWh = val!),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _originWh,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Origin Warehouse (Source)'),
+                        items: warehouses.map((wh) {
+                          return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                        }).toList(),
+                        onChanged: (val) => setState(() => _originWh = val!),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.arrow_forward_rounded, color: Colors.grey),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _destWh,
-                      decoration: const InputDecoration(labelText: 'Destination Warehouse'),
-                      items: warehouses.map((wh) {
-                        return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setState(() => _destWh = val!),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                      child: Icon(Icons.arrow_forward_rounded, color: colorScheme.primary, size: AppSizes.iconSm),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _destWh,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Destination Warehouse'),
+                        items: warehouses.map((wh) {
+                          return DropdownMenuItem(value: wh.warehouseId, child: Text(wh.name, maxLines: 1, overflow: TextOverflow.ellipsis));
+                        }).toList(),
+                        onChanged: (val) => setState(() => _destWh = val!),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              AppGap.h16,
 
               // SKU & Quantity Row
-              Row(
-                children: [
-                  Expanded(
-                    flex: 6,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedSku,
-                      decoration: const InputDecoration(labelText: 'Transfer Product / SKU'),
-                      items: products.map((p) {
-                        final sku = p['sku'] as String? ?? 'SKU';
-                        final name = p['name'] as String? ?? 'Product';
-                        return DropdownMenuItem(value: sku, child: Text('$sku - $name', maxLines: 1, overflow: TextOverflow.ellipsis));
-                      }).toList(),
-                      onChanged: (val) => setState(() => _selectedSku = val!),
-                    ),
+              if (isNarrow) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedSku,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Transfer Product / SKU'),
+                  items: products.map((p) {
+                    final sku = p['sku'] as String? ?? 'SKU';
+                    final name = p['name'] as String? ?? 'Product';
+                    return DropdownMenuItem(value: sku, child: Text('$sku - $name', maxLines: 1, overflow: TextOverflow.ellipsis));
+                  }).toList(),
+                  onChanged: (val) => setState(() => _selectedSku = val!),
+                ),
+                AppGap.h12,
+                TextFormField(
+                  initialValue: _quantity.toString(),
+                  decoration: InputDecoration(
+                    labelText: 'Quantity (${selectedProduct['uom'] ?? "units"})',
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 4,
-                    child: TextFormField(
-                      initialValue: _quantity.toString(),
-                      decoration: InputDecoration(
-                        labelText: 'Quantity (${selectedProduct['uom'] ?? "units"})',
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onSaved: (val) => _quantity = double.tryParse(val ?? '1') ?? 1.0,
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _selectedSku,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Transfer Product / SKU'),
+                        items: products.map((p) {
+                          final sku = p['sku'] as String? ?? 'SKU';
+                          final name = p['name'] as String? ?? 'Product';
+                          return DropdownMenuItem(value: sku, child: Text('$sku - $name', maxLines: 1, overflow: TextOverflow.ellipsis));
+                        }).toList(),
+                        onChanged: (val) => setState(() => _selectedSku = val!),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      onSaved: (val) => _quantity = double.tryParse(val ?? '1') ?? 1.0,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    AppGap.w12,
+                    Expanded(
+                      flex: 4,
+                      child: TextFormField(
+                        initialValue: _quantity.toString(),
+                        decoration: InputDecoration(
+                          labelText: 'Quantity (${selectedProduct['uom'] ?? "units"})',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onSaved: (val) => _quantity = double.tryParse(val ?? '1') ?? 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              AppGap.h16,
 
               // Carrier & Tracking Row
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: _carrier,
-                      decoration: const InputDecoration(labelText: 'Logistics Carrier / Vehicle'),
-                      onSaved: (val) => _carrier = val ?? '',
+              if (isNarrow) ...[
+                TextFormField(
+                  initialValue: _carrier,
+                  decoration: const InputDecoration(labelText: 'Logistics Carrier / Vehicle'),
+                  onSaved: (val) => _carrier = val ?? '',
+                ),
+                AppGap.h12,
+                TextFormField(
+                  initialValue: _trackingNumber,
+                  decoration: const InputDecoration(labelText: 'Airway Bill / Tracking #'),
+                  onSaved: (val) => _trackingNumber = val ?? '',
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: _carrier,
+                        decoration: const InputDecoration(labelText: 'Logistics Carrier / Vehicle'),
+                        onSaved: (val) => _carrier = val ?? '',
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: _trackingNumber,
-                      decoration: const InputDecoration(labelText: 'Airway Bill / Tracking #'),
-                      onSaved: (val) => _trackingNumber = val ?? '',
+                    AppGap.w12,
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: _trackingNumber,
+                        decoration: const InputDecoration(labelText: 'Airway Bill / Tracking #'),
+                        onSaved: (val) => _trackingNumber = val ?? '',
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  ],
+                ),
+              ],
+              AppGap.h16,
 
               TextFormField(
                 initialValue: _notes,
                 decoration: const InputDecoration(labelText: 'Transfer Purpose / Notes'),
                 onSaved: (val) => _notes = val ?? '',
               ),
-              const SizedBox(height: 24),
+              AppGap.h24,
 
               // Action Buttons
               Row(
@@ -182,8 +276,8 @@ class _StockTransferModalState extends ConsumerState<StockTransferModal> {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Cancel'),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
+                  AppGap.w12,
+                  FilledButton.icon(
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
                         _formKey.currentState?.save();
@@ -225,12 +319,12 @@ class _StockTransferModalState extends ConsumerState<StockTransferModal> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Inter-Warehouse Transfer ${transfer.transferNumber} created (In-Transit)'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.success,
                           ),
                         );
                       }
                     },
-                    style: ElevatedButton.styleFrom(
+                    style: FilledButton.styleFrom(
                       backgroundColor: archetype.brandColor,
                       foregroundColor: Colors.white,
                     ),
@@ -241,8 +335,8 @@ class _StockTransferModalState extends ConsumerState<StockTransferModal> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
