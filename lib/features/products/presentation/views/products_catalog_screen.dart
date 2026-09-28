@@ -4,7 +4,6 @@ import '../../../../core/design/app_radii.dart';
 import '../../../../core/design/app_sizes.dart';
 import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
-import '../../../../core/responsive/app_breakpoints.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -12,6 +11,7 @@ import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/product.dart';
 import '../controllers/product_controller.dart';
 import '../widgets/product_detail_modal.dart';
+import '../widgets/product_list_item.dart';
 import 'product_form_screen.dart';
 
 /// Master Products & Inventory Catalog Screen
@@ -299,217 +299,23 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                 separatorBuilder: (context, index) => AppGap.h12,
                 itemBuilder: (context, index) {
                   final product = catalogState.products[index];
-                  return _buildProductCard(
-                    context,
+                  return ProductListItem(
                     product: product,
                     handler: handler,
-                    colorScheme: colorScheme,
-                    isDark: isDark,
+                    onTap: () => ProductDetailModal.show(
+                      context,
+                      product: product,
+                      onEdit: () => _navigateToForm(context, product),
+                      onDelete: () => ref.read(productCatalogProvider.notifier).deleteProduct(product.id),
+                    ),
+                    onEdit: () => _navigateToForm(context, product),
+                    onDelete: () => ref.read(productCatalogProvider.notifier).deleteProduct(product.id),
                   );
                 },
               ),
           ],
         ),
       ),
-      ),
-    );
-  }
-
-  Widget _buildProductCard(
-    BuildContext context, {
-    required Product product,
-    required dynamic handler,
-    required ColorScheme colorScheme,
-    required bool isDark,
-  }) {
-    final formattedQty = handler.formatQuantity(
-      product.stockQuantity,
-      uom: product.baseUom,
-      customAttributes: product.customAttributes,
-    );
-
-    return InkWell(
-      onTap: () => ProductDetailModal.show(
-        context,
-        product: product,
-        onEdit: () => _navigateToForm(context, product),
-        onDelete: () => ref.read(productCatalogProvider.notifier).deleteProduct(product.id),
-      ),
-      borderRadius: BorderRadius.circular(AppRadii.r12),
-      child: Container(
-        padding: AppPadding.p16,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadii.r12),
-          border: Border.all(
-            color: product.isLowStock ? AppColors.warning.withValues(alpha: 0.5) : colorScheme.outline,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Archetype Icon Badge
-                Container(
-                  padding: AppPadding.p12,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadii.r8),
-                  ),
-                  child: Icon(Icons.inventory_2_outlined, color: colorScheme.primary, size: AppSizes.iconMd),
-                ),
-                AppGap.w12,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              product.name,
-                              style: AppTypography.headlineSmall.copyWith(
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            formattedQty,
-                            style: AppTypography.headlineSmall.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      AppGap.h4,
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.xs,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkSurface
-                                  : AppColors.lightSurface,
-                              borderRadius: BorderRadius.circular(AppRadii.r4),
-                            ),
-                            child: Text(
-                              product.category,
-                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Text('SKU: ${product.sku}', style: AppTypography.bodySmall),
-                          Text('•', style: AppTypography.bodySmall),
-                          Text('Barcode: ${product.barcode}', style: AppTypography.bodySmall),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert_rounded),
-                  onSelected: (action) {
-                    if (action == 'edit') {
-                      _navigateToForm(context, product);
-                    } else if (action == 'delete') {
-                      ref.read(productCatalogProvider.notifier).deleteProduct(product.id);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ],
-                ),
-              ],
-            ),
-            const Divider(height: AppSpacing.md),
-
-            // Dynamic Attribute Tags and Wrapper Indicators
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
-                // Low Stock Badge
-                if (product.isLowStock)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                    child: Text(
-                      'LOW STOCK ALERT',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                // Matrix Variants Badge
-                if (product.hasVariants)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                    child: Text(
-                      '${product.variants.length} VARIANTS',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.info,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                // Recipe BOM Badge
-                if (product.isRecipeKit)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                    ),
-                    child: Text(
-                      'RECIPE BOM (${product.recipeBOM.length} INGREDIENTS)',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                // Dynamic Polymorphic Schema Tags
-                ...product.customAttributes.entries.map((entry) {
-                  final label = entry.key.replaceAll('_', ' ').toUpperCase();
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurface.withValues(alpha: 0.5)
-                          : AppColors.lightSurface,
-                      borderRadius: BorderRadius.circular(AppRadii.r4),
-                      border: Border.all(color: colorScheme.outline),
-                    ),
-                    child: Text(
-                      '$label: ${entry.value}',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
