@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/design/app_radii.dart';
+import '../../../../core/design/app_sizes.dart';
+import '../../../../core/design/app_spacing.dart';
+import '../../../../core/design/app_typography.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/models/putaway_task.dart';
 import '../controllers/inbound_controller.dart';
 import '../widgets/po_form_modal.dart';
-import '../widgets/qc_inspection_modal.dart';
 import '../widgets/putaway_confirm_modal.dart';
+import '../widgets/qc_inspection_modal.dart';
 
+/// Inbound Receiving, PO Pipeline, QC Gate & Directed Putaway Screen.
 class InboundScreen extends ConsumerStatefulWidget {
   const InboundScreen({super.key});
 
@@ -25,6 +30,9 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -36,6 +44,7 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final archetype = ref.watch(archetypeProvider).archetype;
     final inboundState = ref.watch(inboundNotifierProvider);
@@ -49,179 +58,229 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: context.isMobile ? AppSpacing.pagePaddingMobile : AppSpacing.pagePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Screen Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text('Inbound Receiving & POs', style: AppTypography.h1),
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: archetype.brandColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                            border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
+      body: Responsive.constrainedContent(
+        child: SingleChildScrollView(
+          padding: context.isMobile ? AppSpacing.pagePaddingMobile : AppSpacing.pagePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Responsive Header Bar
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
+
+                  final titleSection = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          Text(
+                            'Inbound Receiving & POs',
+                            style: AppTypography.headlineLarge.copyWith(
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: Text(
-                            archetype.name,
-                            style: AppTypography.captionBold.copyWith(color: archetype.brandColor),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                            decoration: BoxDecoration(
+                              color: archetype.brandColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(AppRadii.r4),
+                              border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              archetype.name,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: archetype.brandColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Dock intake, QC inspection gate & directed putaway for ${archetype.name}',
-                      style: AppTypography.body.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ],
                       ),
-                    ),
+                      AppGap.h4,
+                      Text(
+                        'Dock intake, QC inspection gate & directed putaway for ${archetype.name}',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  );
+
+                  final newPoButton = ElevatedButton.icon(
+                    onPressed: () => PoFormModal.show(context),
+                    icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
+                    label: const Text('New Purchase Order'),
+                  );
+
+                  if (isCompact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        titleSection,
+                        AppGap.h12,
+                        SizedBox(width: double.infinity, child: newPoButton),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: titleSection),
+                      AppGap.w16,
+                      newPoButton,
+                    ],
+                  );
+                },
+              ),
+              AppGap.h20,
+
+              // 2. Responsive 4-Stage KPI Pipeline Grid
+              _buildKpiSection(context, pendingPoCount, dockCount, qcCount, putawayCount, archetype, isDark, colorScheme),
+              AppGap.h24,
+
+              // 3. Tab Navigation Bar
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppRadii.r12),
+                  border: Border.all(color: colorScheme.outline),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  indicatorColor: colorScheme.primary,
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.list_alt_rounded, size: AppSizes.iconSm), text: 'PO Pipeline'),
+                    Tab(icon: Icon(Icons.dock_rounded, size: AppSizes.iconSm), text: 'Dock Receiving (GRN)'),
+                    Tab(icon: Icon(Icons.verified_user_outlined, size: AppSizes.iconSm), text: 'QC Inspection Gate'),
+                    Tab(icon: Icon(Icons.grid_view_rounded, size: AppSizes.iconSm), text: 'Directed Putaway'),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => const PoFormModal(),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusSm)),
-                  ),
-                  icon: const Icon(Icons.add_rounded, size: 20),
-                  label: const Text('New Purchase Order'),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Inbound KPI Cards
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isNarrow = constraints.maxWidth < 700;
-                final cards = [
-                  {
-                    'title': '1. PO Pipeline',
-                    'count': '$pendingPoCount Orders',
-                    'icon': Icons.description_outlined,
-                    'color': AppColors.info,
-                    'tabIndex': 0,
-                  },
-                  {
-                    'title': '2. Dock Receiving',
-                    'count': '$dockCount Shipments',
-                    'icon': Icons.local_shipping_outlined,
-                    'color': AppColors.warning,
-                    'tabIndex': 1,
-                  },
-                  {
-                    'title': '3. QC Inspection',
-                    'count': '$qcCount Batches',
-                    'icon': Icons.fact_check_outlined,
-                    'color': archetype.brandColor,
-                    'tabIndex': 2,
-                  },
-                  {
-                    'title': '4. Directed Putaway',
-                    'count': '$putawayCount Tasks',
-                    'icon': Icons.move_to_inbox_outlined,
-                    'color': AppColors.success,
-                    'tabIndex': 3,
-                  },
-                ];
-
-                if (isNarrow) {
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: cards.map((c) => SizedBox(
-                      width: (constraints.maxWidth - 12) / 2,
-                      child: _buildKpiCard(context, c, isDark),
-                    )).toList(),
-                  );
-                }
-
-                return Row(
-                  children: cards.map((c) {
-                    return Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        child: _buildKpiCard(context, c, isDark),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Tab Navigation Bar
-            Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
-              child: TabBar(
-                controller: _tabController,
-                indicatorColor: theme.colorScheme.primary,
-                labelColor: theme.colorScheme.primary,
-                unselectedLabelColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                tabs: const [
-                  Tab(icon: Icon(Icons.list_alt_rounded), text: 'Purchase Orders'),
-                  Tab(icon: Icon(Icons.dock_rounded), text: 'Dock Receiving (GRN)'),
-                  Tab(icon: Icon(Icons.verified_user_outlined), text: 'QC Inspection Gate'),
-                  Tab(icon: Icon(Icons.grid_view_rounded), text: 'Directed Putaway'),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
+              AppGap.h16,
 
-            // Tab Views Container
-            SizedBox(
-              height: 580,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildPoListView(context, pos, isDark, theme),
-                  _buildDockReceivingView(context, pos, isDark, theme),
-                  _buildQcGateView(context, pos, isDark, theme),
-                  _buildPutawayView(context, putawayTasks, isDark, theme),
-                ],
-              ),
-            ),
-          ],
+              // 4. Active Tab Content View (Zero hardcoded height, natural scrolling)
+              _buildActiveTabView(context, _tabController.index, pos, putawayTasks, isDark, colorScheme),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildKpiCard(BuildContext context, Map<String, dynamic> data, bool isDark) {
-    final theme = Theme.of(context);
+  // ---------------------------------------------------------------------------
+  // KPI PIPELINE GRID
+  // ---------------------------------------------------------------------------
+  Widget _buildKpiSection(
+    BuildContext context,
+    int pendingPoCount,
+    int dockCount,
+    int qcCount,
+    int putawayCount,
+    dynamic archetype,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    final cards = [
+      {
+        'title': '1. PO Pipeline',
+        'count': '$pendingPoCount Orders',
+        'icon': Icons.description_outlined,
+        'color': AppColors.info,
+        'tabIndex': 0,
+      },
+      {
+        'title': '2. Dock Intake',
+        'count': '$dockCount Shipments',
+        'icon': Icons.local_shipping_outlined,
+        'color': AppColors.warning,
+        'tabIndex': 1,
+      },
+      {
+        'title': '3. QC Inspection',
+        'count': '$qcCount Batches',
+        'icon': Icons.fact_check_outlined,
+        'color': archetype.brandColor as Color,
+        'tabIndex': 2,
+      },
+      {
+        'title': '4. Putaway Tasks',
+        'count': '$putawayCount Tasks',
+        'icon': Icons.move_to_inbox_outlined,
+        'color': AppColors.success,
+        'tabIndex': 3,
+      },
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 960;
+
+        if (isNarrow) {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _buildKpiCard(context, cards[0], isDark, colorScheme)),
+                  AppGap.w12,
+                  Expanded(child: _buildKpiCard(context, cards[1], isDark, colorScheme)),
+                ],
+              ),
+              AppGap.h12,
+              Row(
+                children: [
+                  Expanded(child: _buildKpiCard(context, cards[2], isDark, colorScheme)),
+                  AppGap.w12,
+                  Expanded(child: _buildKpiCard(context, cards[3], isDark, colorScheme)),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: cards.map((c) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: _buildKpiCard(context, c, isDark, colorScheme),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildKpiCard(
+    BuildContext context,
+    Map<String, dynamic> data,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     final color = data['color'] as Color;
+    final isSelected = _tabController.index == (data['tabIndex'] as int);
 
     return InkWell(
       onTap: () => _tabController.animateTo(data['tabIndex'] as int),
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderRadius: BorderRadius.circular(AppRadii.r12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: AppPadding.p12,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
+          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(AppRadii.r12),
+          border: Border.all(
+            color: isSelected ? color : colorScheme.outline,
+            width: isSelected ? 2 : 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +288,14 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(data['icon'] as IconData, size: 22, color: color),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadii.r4),
+                  ),
+                  child: Icon(data['icon'] as IconData, size: AppSizes.iconSm, color: color),
+                ),
                 Container(
                   width: 8,
                   height: 8,
@@ -237,14 +303,24 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(data['count'] as String, style: AppTypography.h2),
-            const SizedBox(height: 2),
+            AppGap.h8,
+            Text(
+              data['count'] as String,
+              style: AppTypography.headlineSmall.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            AppGap.h4,
             Text(
               data['title'] as String,
-              style: AppTypography.caption.copyWith(
+              style: AppTypography.labelSmall.copyWith(
                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -252,116 +328,211 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     );
   }
 
-  // 1. Purchase Orders List
-  Widget _buildPoListView(BuildContext context, List<PurchaseOrder> pos, bool isDark, ThemeData theme) {
+  // ---------------------------------------------------------------------------
+  // TAB CONTENT SELECTOR
+  // ---------------------------------------------------------------------------
+  Widget _buildActiveTabView(
+    BuildContext context,
+    int index,
+    List<PurchaseOrder> pos,
+    List<PutawayTask> putawayTasks,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    switch (index) {
+      case 0:
+        return _buildPoListView(context, pos, isDark, colorScheme);
+      case 1:
+        return _buildDockReceivingView(context, pos, isDark, colorScheme);
+      case 2:
+        return _buildQcGateView(context, pos, isDark, colorScheme);
+      case 3:
+      default:
+        return _buildPutawayView(context, putawayTasks, isDark, colorScheme);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1. PURCHASE ORDERS LIST VIEW
+  // ---------------------------------------------------------------------------
+  Widget _buildPoListView(
+    BuildContext context,
+    List<PurchaseOrder> pos,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     if (pos.isEmpty) {
-      return Center(child: Text('No Purchase Orders found.', style: AppTypography.body));
+      return _buildEmptyState(
+        icon: Icons.description_outlined,
+        title: 'No Purchase Orders found',
+        subtitle: 'Create a new purchase order to start inbound intake.',
+        actionLabel: 'Create Purchase Order',
+        onAction: () => PoFormModal.show(context),
+        colorScheme: colorScheme,
+      );
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: pos.length,
+      separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = pos[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.receipt_long_rounded, color: theme.colorScheme.primary),
+        final canDockReceive = po.status == InboundStatus.inTransit || po.status == InboundStatus.approved;
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 600;
+
+            return Container(
+              padding: AppPadding.p16,
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadii.r12),
+                border: Border.all(color: colorScheme.outline),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: AppSizes.buttonHeightSm,
+                        height: AppSizes.buttonHeightSm,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppRadii.r8),
+                        ),
+                        child: Icon(Icons.receipt_long_rounded, color: colorScheme.primary, size: AppSizes.iconSm),
+                      ),
+                      AppGap.w12,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: AppSpacing.sm,
+                              runSpacing: AppSpacing.xs,
+                              children: [
+                                Text(
+                                  po.poNumber,
+                                  style: AppTypography.bodyLarge.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                  ),
+                                ),
+                                _buildStatusChip(po.status, colorScheme),
+                              ],
+                            ),
+                            AppGap.h4,
+                            Text(
+                              'Supplier: ${po.vendorName}',
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${po.items.length} line items  •  ${po.totalOrderedUnits.toStringAsFixed(0)} units total',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isNarrow) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '\$${po.totalAmount.toStringAsFixed(2)}',
+                              style: AppTypography.bodyLarge.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            if (canDockReceive) ...[
+                              AppGap.h8,
+                              ElevatedButton.icon(
+                                onPressed: () => _handleDockReceive(po),
+                                icon: const Icon(Icons.input_rounded, size: AppSizes.iconSm),
+                                label: const Text('Dock Receive'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (isNarrow) ...[
+                    AppGap.h12,
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(po.poNumber, style: AppTypography.h3),
-                        const SizedBox(width: 8),
-                        _buildStatusChip(po.status, theme),
+                        Text(
+                          'Total: \$${po.totalAmount.toStringAsFixed(2)}',
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        if (canDockReceive)
+                          ElevatedButton.icon(
+                            onPressed: () => _handleDockReceive(po),
+                            icon: const Icon(Icons.input_rounded, size: AppSizes.iconSm),
+                            label: const Text('Dock Receive'),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${po.vendorName} • ${po.items.length} items (${po.totalOrderedUnits.toStringAsFixed(0)} units) • \$${po.totalAmount.toStringAsFixed(2)}',
-                      style: AppTypography.caption,
-                    ),
-                    if (po.notes != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Note: ${po.notes}',
-                        style: AppTypography.caption.copyWith(fontStyle: FontStyle.italic),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              if (po.status == InboundStatus.inTransit || po.status == InboundStatus.approved)
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final updatedItems = po.items.map((i) => i.copyWith(receivedQty: i.orderedQty)).toList();
-                    await ref.read(inboundNotifierProvider.notifier).receiveDockGoods(
-                      poId: po.id,
-                      receivedItems: updatedItems,
-                      dockId: 'Dock Staging Bay 01',
-                    );
-                    _tabController.animateTo(2); // Jump to QC
-                  },
-                  icon: const Icon(Icons.input_rounded, size: 16),
-                  label: const Text('Dock Receive'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                  ),
-                ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  // 2. Dock Receiving View
-  Widget _buildDockReceivingView(BuildContext context, List<PurchaseOrder> pos, bool isDark, ThemeData theme) {
+  // ---------------------------------------------------------------------------
+  // 2. DOCK RECEIVING VIEW
+  // ---------------------------------------------------------------------------
+  Widget _buildDockReceivingView(
+    BuildContext context,
+    List<PurchaseOrder> pos,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     final dockPos = pos.where((p) => p.status == InboundStatus.atDock || p.status == InboundStatus.receiving || p.status == InboundStatus.inTransit).toList();
 
     if (dockPos.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.local_shipping_outlined, size: 48, color: theme.colorScheme.outline),
-            const SizedBox(height: 12),
-            Text('No shipments currently waiting at Dock bays.', style: AppTypography.body),
-          ],
-        ),
+      return _buildEmptyState(
+        icon: Icons.local_shipping_outlined,
+        title: 'No shipments waiting at Dock bays',
+        subtitle: 'All in-transit purchase orders have been received at dock.',
+        colorScheme: colorScheme,
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: dockPos.length,
+      separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = dockPos[index];
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          padding: AppPadding.p16,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadii.r12),
+            border: Border.all(color: colorScheme.outline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,47 +540,61 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Dock Bay: ${po.receivingDockId ?? 'Dock-01 (Inbound)'}', style: AppTypography.bodyBold),
-                  _buildStatusChip(po.status, theme),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppRadii.r4),
+                    ),
+                    child: Text(
+                      'DOCK: ${po.receivingDockId ?? "Dock Staging Bay 01"}',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.warning,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _buildStatusChip(po.status, colorScheme),
                 ],
               ),
-              const Divider(height: 16),
-              Text('${po.poNumber} — ${po.vendorName}', style: AppTypography.h3),
-              const SizedBox(height: 6),
+              const Divider(height: AppSpacing.lg),
+              Text(
+                '${po.poNumber} — ${po.vendorName}',
+                style: AppTypography.bodyLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                ),
+              ),
+              AppGap.h8,
               ...po.items.map((item) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${item.productName} (${item.sku})', style: AppTypography.body),
-                      Text('${item.orderedQty} ${item.uom}', style: AppTypography.bodyBold),
+                      Expanded(
+                        child: Text(
+                          '${item.productName} (${item.sku})',
+                          style: AppTypography.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${item.orderedQty} ${item.uom}',
+                        style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 );
               }),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final updatedItems = po.items.map((i) => i.copyWith(receivedQty: i.orderedQty)).toList();
-                      await ref.read(inboundNotifierProvider.notifier).receiveDockGoods(
-                        poId: po.id,
-                        receivedItems: updatedItems,
-                        dockId: po.receivingDockId ?? 'Dock-01',
-                      );
-                      _tabController.animateTo(2); // Jump to QC
-                    },
-                    icon: const Icon(Icons.check_rounded, size: 16),
-                    label: const Text('Scan & Confirm GRN Intake'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                ],
+              AppGap.h16,
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleDockReceive(po),
+                  icon: const Icon(Icons.check_rounded, size: AppSizes.iconSm),
+                  label: const Text('Scan & Confirm GRN Intake'),
+                ),
               ),
             ],
           ),
@@ -418,36 +603,41 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     );
   }
 
-  // 3. QC Gate View
-  Widget _buildQcGateView(BuildContext context, List<PurchaseOrder> pos, bool isDark, ThemeData theme) {
+  // ---------------------------------------------------------------------------
+  // 3. QC GATE VIEW
+  // ---------------------------------------------------------------------------
+  Widget _buildQcGateView(
+    BuildContext context,
+    List<PurchaseOrder> pos,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     final qcPos = pos.where((p) => p.status == InboundStatus.qcPending || p.status == InboundStatus.atDock).toList();
 
     if (qcPos.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.verified_rounded, size: 48, color: theme.colorScheme.primary),
-            const SizedBox(height: 12),
-            Text('All dock intake shipments have passed QC inspection!', style: AppTypography.bodyBold),
-          ],
-        ),
+      return _buildEmptyState(
+        icon: Icons.verified_rounded,
+        title: 'QC Inspection Gate Clear',
+        subtitle: 'All dock intake shipments have passed Quality Control inspection.',
+        colorScheme: colorScheme,
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: qcPos.length,
+      separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = qcPos[index];
         final isHealthcare = po.archetypeId == 'healthcare_pharma';
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          padding: AppPadding.p16,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadii.r12),
+            border: Border.all(color: colorScheme.outline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,48 +645,55 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.xs,
                     children: [
-                      Text(po.poNumber, style: AppTypography.h3),
-                      if (isHealthcare) ...[
-                        const SizedBox(width: 8),
+                      Text(
+                        po.poNumber,
+                        style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      if (isHealthcare)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.error.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppRadii.r4),
                           ),
                           child: Text(
                             'DUAL-WITNESS MANDATORY',
-                            style: AppTypography.captionBold.copyWith(color: theme.colorScheme.onErrorContainer, fontSize: 10),
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
-                      ],
                     ],
                   ),
-                  _buildStatusChip(po.status, theme),
+                  _buildStatusChip(po.status, colorScheme),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text('Supplier: ${po.vendorName} • Arrived at: ${po.receivingDockId ?? 'Dock-01'}', style: AppTypography.caption),
-              const Divider(height: 20),
+              AppGap.h4,
+              Text(
+                'Supplier: ${po.vendorName} • Arrived at: ${po.receivingDockId ?? "Dock-01"}',
+                style: AppTypography.bodySmall.copyWith(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                ),
+              ),
+              const Divider(height: AppSpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${po.items.length} items staged for inspection', style: AppTypography.bodyBold),
+                  Text(
+                    '${po.items.length} items staged for inspection',
+                    style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => QcInspectionModal(purchaseOrder: po),
-                      );
-                    },
-                    icon: const Icon(Icons.fact_check_rounded, size: 16),
-                    label: const Text('Open QC Gate Inspection'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                    ),
+                    onPressed: () => QcInspectionModal.show(context, purchaseOrder: po),
+                    icon: const Icon(Icons.fact_check_rounded, size: AppSizes.iconSm),
+                    label: const Text('Open QC Gate'),
                   ),
                 ],
               ),
@@ -507,93 +704,110 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     );
   }
 
-  // 4. Directed Putaway View
-  Widget _buildPutawayView(BuildContext context, List<PutawayTask> tasks, bool isDark, ThemeData theme) {
+  // ---------------------------------------------------------------------------
+  // 4. DIRECTED PUTAWAY VIEW
+  // ---------------------------------------------------------------------------
+  Widget _buildPutawayView(
+    BuildContext context,
+    List<PutawayTask> tasks,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     if (tasks.isEmpty) {
-      return Center(child: Text('No active Putaway tasks pending.', style: AppTypography.body));
+      return _buildEmptyState(
+        icon: Icons.move_to_inbox_outlined,
+        title: 'No Active Putaway Tasks',
+        subtitle: 'All items have been put away into their assigned shelf bin locations.',
+        colorScheme: colorScheme,
+      );
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: tasks.length,
+      separatorBuilder: (context, index) => AppGap.h12,
       itemBuilder: (context, index) {
         final task = tasks[index];
         final isDone = task.isCompleted;
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          padding: AppPadding.p16,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadii.r12),
             border: Border.all(
-              color: isDone
-                  ? theme.colorScheme.outlineVariant
-                  : theme.colorScheme.primary.withValues(alpha: 0.5),
+              color: isDone ? colorScheme.outline : colorScheme.primary.withValues(alpha: 0.5),
             ),
           ),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: isDone
-                    ? theme.colorScheme.surfaceContainerHighest
-                    : theme.colorScheme.primaryContainer,
+              Container(
+                width: AppSizes.buttonHeightSm,
+                height: AppSizes.buttonHeightSm,
+                decoration: BoxDecoration(
+                  color: isDone
+                      ? colorScheme.surfaceContainerHighest
+                      : colorScheme.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(
                   isDone ? Icons.check_circle_rounded : Icons.navigation_outlined,
-                  color: isDone ? theme.colorScheme.outline : theme.colorScheme.primary,
-                  size: 20,
+                  color: isDone ? colorScheme.outline : colorScheme.primary,
+                  size: AppSizes.iconSm + 4,
                 ),
               ),
-              const SizedBox(width: 14),
+              AppGap.w12,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
                       children: [
-                        Text(task.productName, style: AppTypography.bodyBold),
-                        const SizedBox(width: 8),
+                        Text(
+                          task.productName,
+                          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(4),
+                            color: colorScheme.secondary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppRadii.r4),
                           ),
                           child: Text(
                             task.zoneType.name.toUpperCase(),
-                            style: AppTypography.captionBold.copyWith(
-                              color: theme.colorScheme.onSecondaryContainer,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: colorScheme.secondary,
+                              fontWeight: FontWeight.bold,
                               fontSize: 10,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    AppGap.h4,
                     Text(
-                      'Suggested: ${task.suggestedLocation} (${task.quantity} ${task.uom})',
-                      style: AppTypography.captionBold.copyWith(color: theme.colorScheme.primary),
+                      'Suggested Bin: ${task.suggestedLocation} (${task.quantity} ${task.uom})',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     if (task.confirmedLocation != null) ...[
                       const SizedBox(height: 2),
-                      Text('Confirmed at: ${task.confirmedLocation}', style: AppTypography.caption),
+                      Text('Confirmed at: ${task.confirmedLocation}', style: AppTypography.bodySmall),
                     ],
                   ],
                 ),
               ),
               if (!isDone)
                 ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => PutawayConfirmModal(task: task),
-                    );
-                  },
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                  onPressed: () => PutawayConfirmModal.show(context, task: task),
+                  icon: const Icon(Icons.arrow_forward_rounded, size: AppSizes.iconSm),
                   label: const Text('Confirm Bin'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                  ),
                 ),
             ],
           ),
@@ -602,7 +816,47 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
     );
   }
 
-  Widget _buildStatusChip(InboundStatus status, ThemeData theme) {
+  // ---------------------------------------------------------------------------
+  // HELPER SUB-COMPONENTS
+  // ---------------------------------------------------------------------------
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    String? actionLabel,
+    VoidCallback? onAction,
+    required ColorScheme colorScheme,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: AppPadding.p32,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadii.r12),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: AppSizes.buttonHeightMd, color: colorScheme.primary.withValues(alpha: 0.5)),
+          AppGap.h16,
+          Text(title, style: AppTypography.headlineSmall),
+          AppGap.h4,
+          Text(subtitle, style: AppTypography.bodySmall, textAlign: TextAlign.center),
+          if (actionLabel != null && onAction != null) ...[
+            AppGap.h16,
+            ElevatedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.add_rounded, size: AppSizes.iconSm),
+              label: Text(actionLabel),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(InboundStatus status, ColorScheme colorScheme) {
     Color bg;
     Color fg;
 
@@ -619,8 +873,8 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
         fg = AppColors.warning;
         break;
       case InboundStatus.qcPending:
-        bg = theme.colorScheme.primary.withValues(alpha: 0.15);
-        fg = theme.colorScheme.primary;
+        bg = colorScheme.primary.withValues(alpha: 0.15);
+        fg = colorScheme.primary;
         break;
       case InboundStatus.qcPassed:
       case InboundStatus.putawayReady:
@@ -630,15 +884,28 @@ class _InboundScreenState extends ConsumerState<InboundScreen> with SingleTicker
         break;
       case InboundStatus.qcFailed:
       case InboundStatus.cancelled:
-        bg = theme.colorScheme.error.withValues(alpha: 0.15);
-        fg = theme.colorScheme.error;
+        bg = AppColors.error.withValues(alpha: 0.15);
+        fg = AppColors.error;
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(4)),
-      child: Text(status.label, style: AppTypography.captionBold.copyWith(color: fg)),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadii.r4)),
+      child: Text(
+        status.label,
+        style: AppTypography.labelSmall.copyWith(color: fg, fontWeight: FontWeight.bold, fontSize: 10),
+      ),
     );
+  }
+
+  Future<void> _handleDockReceive(PurchaseOrder po) async {
+    final updatedItems = po.items.map((i) => i.copyWith(receivedQty: i.orderedQty)).toList();
+    await ref.read(inboundNotifierProvider.notifier).receiveDockGoods(
+      poId: po.id,
+      receivedItems: updatedItems,
+      dockId: po.receivingDockId ?? 'Dock Staging Bay 01',
+    );
+    _tabController.animateTo(2); // Jump to QC
   }
 }
