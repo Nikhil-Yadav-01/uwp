@@ -216,21 +216,22 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
 
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
+                          child: Material(
                             color: isSelected
                                 ? colorScheme.primaryContainer.withValues(alpha: 0.3)
                                 : colorScheme.surface,
-                            borderRadius: BorderRadius.circular(AppRadii.r8),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : colorScheme.outline,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadii.r8),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : colorScheme.outline,
+                              ),
                             ),
-                          ),
-                          child: CheckboxListTile(
-                            value: isSelected,
-                            dense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                            child: CheckboxListTile(
+                              value: isSelected,
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                             onChanged: (val) {
                               setState(() {
                                 if (val == true) {
@@ -275,7 +276,8 @@ class _WaveGeneratorModalState extends ConsumerState<WaveGeneratorModal> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        );
+                        ),
+                      );
                       },
                     ),
             ),

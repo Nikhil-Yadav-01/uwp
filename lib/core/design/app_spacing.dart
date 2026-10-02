@@ -7,7 +7,9 @@ class AppGap {
 
   // Vertical Height Gaps
   static const SizedBox h4 = SizedBox(height: 4);
+  static const SizedBox h6 = SizedBox(height: 6);
   static const SizedBox h8 = SizedBox(height: 8);
+  static const SizedBox h10 = SizedBox(height: 10);
   static const SizedBox h12 = SizedBox(height: 12);
   static const SizedBox h16 = SizedBox(height: 16);
   static const SizedBox h20 = SizedBox(height: 20);
@@ -19,7 +21,9 @@ class AppGap {
 
   // Horizontal Width Gaps
   static const SizedBox w4 = SizedBox(width: 4);
+  static const SizedBox w6 = SizedBox(width: 6);
   static const SizedBox w8 = SizedBox(width: 8);
+  static const SizedBox w10 = SizedBox(width: 10);
   static const SizedBox w12 = SizedBox(width: 12);
   static const SizedBox w16 = SizedBox(width: 16);
   static const SizedBox w20 = SizedBox(width: 20);

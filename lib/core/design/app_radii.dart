@@ -6,6 +6,7 @@ class AppRadii {
 
   // Double Values
   static const double r4 = 4.0;
+  static const double r6 = 6.0;
   static const double r8 = 8.0;
   static const double r12 = 12.0;
   static const double r16 = 16.0;
@@ -16,6 +17,7 @@ class AppRadii {
 
   // Radius Objects
   static const Radius rad4 = Radius.circular(r4);
+  static const Radius rad6 = Radius.circular(r6);
   static const Radius rad8 = Radius.circular(r8);
   static const Radius rad12 = Radius.circular(r12);
   static const Radius rad16 = Radius.circular(r16);

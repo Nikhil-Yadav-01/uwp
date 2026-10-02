@@ -120,23 +120,24 @@ class AdaptiveNavigationShell extends StatelessWidget {
                         final isSelected = index == currentIndex;
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
+                          child: Material(
                             color: isSelected ? AppColors.primaryContainer : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
-                              color: isSelected ? AppColors.primary : AppColors.textSecondaryLight,
-                            ),
-                            title: Text(
-                              item.label,
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                color: isSelected ? AppColors.primary : AppColors.textPrimaryLight,
+                            child: ListTile(
+                              leading: Icon(
+                                isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
+                                color: isSelected ? AppColors.primary : AppColors.textSecondaryLight,
                               ),
+                              title: Text(
+                                item.label,
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  color: isSelected ? AppColors.primary : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              onTap: () => onDestinationSelected(index),
                             ),
-                            onTap: () => onDestinationSelected(index),
                           ),
                         );
                       },

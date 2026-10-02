@@ -24,12 +24,19 @@ class NavigationItem {
 const List<NavigationItem> kNavigationItems = [
   NavigationItem(label: 'Dashboard', icon: Icons.dashboard_outlined, route: '/'),
   NavigationItem(label: 'Inventory Catalog', icon: Icons.inventory_2_outlined, route: '/products'),
+  NavigationItem(label: 'Customers', icon: Icons.people_alt_outlined, route: '/customers'),
+  NavigationItem(label: 'Vendors / Suppliers', icon: Icons.storefront_outlined, route: '/vendors'),
+  NavigationItem(label: 'Locations & Bins', icon: Icons.account_tree_outlined, route: '/locations'),
   NavigationItem(label: 'Inbound / PO', icon: Icons.local_shipping_outlined, route: '/inbound'),
   NavigationItem(label: 'Outbound / Waves', icon: Icons.outbox_outlined, route: '/outbound'),
   NavigationItem(label: 'Stock Ledger', icon: Icons.receipt_long_outlined, route: '/ledger'),
-  NavigationItem(label: 'Floorplan 2D', icon: Icons.map_outlined, route: '/floorplan'),
+  NavigationItem(label: 'Returns / RTO', icon: Icons.assignment_return_outlined, route: '/returns'),
+  // NavigationItem(label: 'Floorplan 2D', icon: Icons.map_outlined, route: '/floorplan'),
   NavigationItem(label: 'Barcode & AR', icon: Icons.qr_code_scanner_outlined, route: '/scanner'),
   NavigationItem(label: 'POS / Counter', icon: Icons.point_of_sale_outlined, route: '/pos'),
+  NavigationItem(label: 'Reports & Analytics', icon: Icons.bar_chart_outlined, route: '/reports'),
+  NavigationItem(label: 'Notifications', icon: Icons.notifications_none_outlined, route: '/notifications'),
+  NavigationItem(label: 'Administration', icon: Icons.admin_panel_settings_outlined, route: '/admin'),
 ];
 
 /// Multi-Platform Responsive Shell with desktop sidebar, header, and mobile navigation
@@ -112,6 +119,23 @@ class ResponsiveShell extends ConsumerWidget {
 
                 // 1-Click Interactive Demo Archetype Switcher in Top Bar!
                 const DemoArchetypeSwitcherBar(),
+                const SizedBox(width: AppSpacing.xs),
+
+                // Notifications Quick Trigger
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: AppSizes.buttonHeightSm,
+                    minHeight: AppSizes.buttonHeightSm,
+                  ),
+                  tooltip: 'Notifications & Alerts',
+                  icon: const Badge(
+                    label: Text('3', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                    child: Icon(Icons.notifications_outlined, size: 20),
+                  ),
+                  onPressed: () => context.go('/notifications'),
+                ),
                 const SizedBox(width: AppSpacing.xs),
 
                 // Theme Mode Toggle (System / Light / Dark)
@@ -228,22 +252,27 @@ class ResponsiveShell extends ConsumerWidget {
           ),
         ),
       ),
-      drawer: isDesktop ? null : Drawer(child: buildSidebarContent(context, currentRoute, activeArchetype, isDark)),
+      drawer: isDesktop
+          ? null
+          : Drawer(
+              backgroundColor: isDark ? AppColors.darkCard : AppColors.lightCard,
+              child: buildSidebarContent(context, currentRoute, activeArchetype, isDark),
+            ),
       body: Row(
         children: [
           // Collapsible Desktop Sidebar
           if (isDesktop)
-            Container(
-              width: AppSizes.sidebarWidth,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                border: Border(
-                  right: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
+            Material(
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              shape: Border(
+                right: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                 ),
               ),
-              child: buildSidebarContent(context, currentRoute, activeArchetype, isDark),
+              child: SizedBox(
+                width: AppSizes.sidebarWidth,
+                child: buildSidebarContent(context, currentRoute, activeArchetype, isDark),
+              ),
             ),
 
           // Main View Content
@@ -286,37 +315,34 @@ class ResponsiveShell extends ConsumerWidget {
 
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 2),
-                child: Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    dense: true,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    ),
-                    selected: isSelected,
-                    selectedTileColor: activeArchetype.brandColor.withValues(alpha: 0.12),
-                    leading: Icon(
-                      item.icon,
-                      size: 18,
+                child: ListTile(
+                  dense: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  selected: isSelected,
+                  selectedTileColor: activeArchetype.brandColor.withValues(alpha: 0.12),
+                  leading: Icon(
+                    item.icon,
+                    size: 18,
+                    color: isSelected
+                        ? activeArchetype.brandColor
+                        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                  ),
+                  title: Text(
+                    item.label,
+                    style: AppTypography.bodyBold.copyWith(
                       color: isSelected
                           ? activeArchetype.brandColor
-                          : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
                     ),
-                    title: Text(
-                      item.label,
-                      style: AppTypography.bodyBold.copyWith(
-                        color: isSelected
-                            ? activeArchetype.brandColor
-                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
-                      ),
-                    ),
-                    onTap: () {
-                      context.go(item.route);
-                      if (!context.isDesktop) {
-                        Navigator.pop(context);
-                      }
-                    },
                   ),
+                  onTap: () {
+                    context.go(item.route);
+                    if (!context.isDesktop) {
+                      Navigator.pop(context);
+                    }
+                  },
                 ),
               );
             },

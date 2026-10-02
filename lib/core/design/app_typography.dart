@@ -77,4 +77,9 @@ class AppTypography {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
   );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+  );
 }

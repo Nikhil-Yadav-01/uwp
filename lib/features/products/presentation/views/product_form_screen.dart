@@ -512,11 +512,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                             break;
 
                           case FieldDataType.boolean:
-                            fieldWidget = Container(
-                              decoration: BoxDecoration(
-                                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                            fieldWidget = Material(
+                              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppRadii.r8),
-                                border: Border.all(color: colorScheme.outline),
+                                side: BorderSide(color: colorScheme.outline),
                               ),
                               child: SwitchListTile(
                                 title: Text(field.label, style: AppTypography.bodyMedium),

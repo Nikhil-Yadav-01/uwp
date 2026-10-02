@@ -150,6 +150,12 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
 
     final categories = [
       _LedgerCategory(
+        title: 'Stock Summary & Balances',
+        count: ref.watch(archetypeProvider).products.length,
+        icon: Icons.inventory_2_outlined,
+        subtitle: 'Available, Reserved & Damaged',
+      ),
+      _LedgerCategory(
         title: 'Stock Ledger Transactions',
         count: ledgerState.transactions.length,
         icon: Icons.receipt_long_outlined,
@@ -325,12 +331,18 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
   }
 
   Widget _buildFilterToolbar(LedgerState ledgerState, ColorScheme colorScheme, bool isDark, bool isMobile) {
+    final searchHint = switch (_selectedCategoryIndex) {
+      0 => 'Search stock by SKU, product name, or bin location...',
+      1 => 'Search transactions by SKU, product, PO/SO # or ref...',
+      2 => 'Search transfers by transfer #, carrier, SKU or depot...',
+      3 => 'Search adjustments by adjustment #, reason or SKU...',
+      _ => 'Search items...',
+    };
+
     final searchField = TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: _selectedCategoryIndex == 0
-            ? 'Search SKU, product name, PO/SO # or bin...'
-            : (_selectedCategoryIndex == 1 ? 'Search transfer #, carrier, SKU or depot...' : 'Search adjustment #, reason or SKU...'),
+        hintText: searchHint,
         prefixIcon: const Icon(Icons.search, size: 20),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
@@ -345,7 +357,7 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
       onChanged: (val) => ref.read(inventoryLedgerProvider.notifier).search(val),
     );
 
-    if (_selectedCategoryIndex != 0) {
+    if (_selectedCategoryIndex != 1) {
       return searchField;
     }
 
@@ -389,14 +401,214 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
   ) {
     switch (_selectedCategoryIndex) {
       case 0:
-        return _buildTransactionsList(ledgerState);
+        return _buildStockSummaryList(ledgerState, brandColor, colorScheme, isDark);
       case 1:
-        return _buildTransfersList(ledgerState);
+        return _buildTransactionsList(ledgerState);
       case 2:
+        return _buildTransfersList(ledgerState);
+      case 3:
         return _buildAdjustmentsList(ledgerState);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildStockSummaryList(LedgerState ledgerState, Color brandColor, ColorScheme colorScheme, bool isDark) {
+    var products = ref.watch(archetypeProvider).products;
+
+    if (ledgerState.searchQuery.isNotEmpty) {
+      final q = ledgerState.searchQuery.toLowerCase();
+      products = products.where((item) {
+        final name = (item['name'] as String? ?? '').toLowerCase();
+        final sku = (item['sku'] as String? ?? '').toLowerCase();
+        final loc = (item['location'] as String? ?? '').toLowerCase();
+        return name.contains(q) || sku.contains(q) || loc.contains(q);
+      }).toList();
+    }
+
+    return Container(
+      padding: AppPadding.p20,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadii.r12),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              Text('Live Stock Summary by SKU', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppRadii.r4),
+                ),
+                child: Text(
+                  '${products.length} SKUs Monitored',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: brandColor),
+                ),
+              ),
+            ],
+          ),
+          AppGap.h16,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 640) {
+                return _buildMobileStockSummaryList(products, colorScheme, isDark);
+              }
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columnSpacing: 24,
+                  columns: const [
+                    DataColumn(label: Text('SKU Code')),
+                    DataColumn(label: Text('Product Name')),
+                    DataColumn(label: Text('Available', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.success))),
+                    DataColumn(label: Text('Reserved', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.warning))),
+                    DataColumn(label: Text('Damaged', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error))),
+                    DataColumn(label: Text('Total Stock', style: TextStyle(fontWeight: FontWeight.bold))),
+                    DataColumn(label: Text('Bin Location')),
+                  ],
+                  rows: products.map((item) {
+                    final stock = (item['stock'] as num? ?? 0).toDouble();
+                    final reserved = (stock * 0.15).roundToDouble();
+                    final damaged = (stock > 20 ? 2.0 : 0.0);
+                    final available = (stock - reserved - damaged).clamp(0.0, stock);
+                    final uom = item['uom'] ?? 'units';
+
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(item['sku'] ?? 'SKU-001', style: const TextStyle(fontWeight: FontWeight.bold))),
+                        DataCell(Text(item['name'] ?? 'Item')),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                            child: Text('${available.toInt()} $uom', style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        DataCell(Text('${reserved.toInt()} $uom', style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w600))),
+                        DataCell(Text('${damaged.toInt()} $uom', style: TextStyle(color: damaged > 0 ? AppColors.error : AppColors.textSecondaryLight))),
+                        DataCell(Text('${stock.toInt()} $uom', style: const TextStyle(fontWeight: FontWeight.bold))),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4)),
+                            child: Text(item['location'] ?? 'A01-01-01', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileStockSummaryList(List<Map<String, dynamic>> products, ColorScheme colorScheme, bool isDark) {
+    if (products.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: Text('No stock items found matching search.')),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: products.length,
+      separatorBuilder: (_, __) => AppGap.h12,
+      itemBuilder: (context, index) {
+        final item = products[index];
+        final stock = (item['stock'] as num? ?? 0).toDouble();
+        final reserved = (stock * 0.15).roundToDouble();
+        final damaged = (stock > 20 ? 2.0 : 0.0);
+        final available = (stock - reserved - damaged).clamp(0.0, stock);
+        final uom = item['uom'] ?? 'units';
+
+        return Container(
+          padding: AppPadding.p12,
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.3) : colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(AppRadii.r8),
+            border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item['name'] ?? 'Item',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      item['sku'] ?? 'SKU-001',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+              AppGap.h4,
+              Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 14, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                  AppGap.w4,
+                  Text(
+                    'Bin: ${item['location'] ?? "A01-01-01"}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+              AppGap.h8,
+              const Divider(height: 1),
+              AppGap.h8,
+              Wrap(
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text('Available: ${available.toInt()} $uom', style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.bold)),
+                  ),
+                  Text('Reserved: ${reserved.toInt()} $uom', style: const TextStyle(fontSize: 12, color: AppColors.warning, fontWeight: FontWeight.w600)),
+                  if (damaged > 0)
+                    Text('Damaged: ${damaged.toInt()} $uom', style: const TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w600)),
+                  Text('Total: ${stock.toInt()} $uom', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildTransactionsList(LedgerState ledgerState) {

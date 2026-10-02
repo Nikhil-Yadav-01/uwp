@@ -179,7 +179,7 @@ class PdaConfigView extends ConsumerWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing,
+          ?trailing,
         ],
       ),
     );
