@@ -43,7 +43,7 @@ class ElectronicsArchetypeHandler implements IArchetypeFeatureHandler {
       const ArchetypeKPIMetric(
         id: 'high_value_cage',
         label: 'High-Value Vault Stock',
-        value: '\$248,500',
+        value: '₹248,500',
         subtitle: 'Dual-auth access required',
         trend: 'Secured',
         isPositiveTrend: true,

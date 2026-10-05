@@ -2,8 +2,11 @@
 class AppFormatters {
   AppFormatters._();
 
-  /// Formats numbers to currency string, e.g. 1250.5 -> "$1,250.50"
-  static String currency(num amount, {String symbol = '\$'}) {
+  /// Centralized currency symbol for the application
+  static const String currencySymbol = '₹';
+
+  /// Formats numbers to currency string, e.g. 1250.5 -> "₹1,250.50"
+  static String currency(num amount, {String symbol = currencySymbol}) {
     return '$symbol${amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}';
   }
 

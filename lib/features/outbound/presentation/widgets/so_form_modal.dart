@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../../products/presentation/controllers/product_controller.dart';
@@ -315,8 +316,8 @@ class _SoFormModalState extends ConsumerState<SoFormModal> {
                   controller: _unitPriceController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(
-                    labelText: 'Unit Price (\$) *',
-                    prefixIcon: Icon(Icons.attach_money_outlined, size: AppSizes.iconSm),
+                    labelText: 'Unit Price (${AppFormatters.currencySymbol}) *',
+                    prefixIcon: Icon(Icons.currency_rupee_outlined, size: AppSizes.iconSm),
                   ),
                   onChanged: (v) => setState(() => _unitPrice = double.tryParse(v) ?? 45.0),
                 ),
@@ -328,7 +329,7 @@ class _SoFormModalState extends ConsumerState<SoFormModal> {
                         controller: _quantityController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Requested Qty *',
+                           labelText: 'Requested Qty *',
                           prefixIcon: Icon(Icons.numbers_outlined, size: AppSizes.iconSm),
                         ),
                         onChanged: (v) => setState(() => _quantity = double.tryParse(v) ?? 5.0),
@@ -340,8 +341,8 @@ class _SoFormModalState extends ConsumerState<SoFormModal> {
                         controller: _unitPriceController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         decoration: const InputDecoration(
-                          labelText: 'Unit Price (\$) *',
-                          prefixIcon: Icon(Icons.attach_money_outlined, size: AppSizes.iconSm),
+                          labelText: 'Unit Price (${AppFormatters.currencySymbol}) *',
+                          prefixIcon: Icon(Icons.currency_rupee_outlined, size: AppSizes.iconSm),
                         ),
                         onChanged: (v) => setState(() => _unitPrice = double.tryParse(v) ?? 45.0),
                       ),
@@ -380,7 +381,7 @@ class _SoFormModalState extends ConsumerState<SoFormModal> {
                       ),
                     ),
                     Text(
-                      '\$${(_quantity * _unitPrice).toStringAsFixed(2)}',
+                      AppFormatters.currency(_quantity * _unitPrice),
                       style: AppTypography.bodyLarge.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.primary,

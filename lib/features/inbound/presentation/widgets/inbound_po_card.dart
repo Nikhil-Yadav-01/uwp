@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../domain/models/purchase_order.dart';
 import 'po_detail_modal.dart';
 import 'po_form_modal.dart';
@@ -115,7 +116,7 @@ class InboundPoCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '\$${po.totalAmount.toStringAsFixed(2)}',
+                              AppFormatters.currency(po.totalAmount),
                               style: AppTypography.headlineSmall.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,
@@ -182,7 +183,7 @@ class InboundPoCard extends StatelessWidget {
                                 ),
                                 AppGap.w8,
                                 Text(
-                                  '\$${item.unitPrice.toStringAsFixed(2)}',
+                                  AppFormatters.currency(item.unitPrice),
                                   style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
@@ -220,7 +221,7 @@ class InboundPoCard extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '\$${po.totalAmount.toStringAsFixed(2)}',
+                              AppFormatters.currency(po.totalAmount),
                               style: AppTypography.bodyLarge.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,

@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/product.dart';
@@ -362,7 +363,7 @@ class ProductDetailModal extends ConsumerWidget {
         final sellTile = _buildMetricTile(
           context,
           label: 'SELLING PRICE',
-          value: '\$${product.sellingPrice.toStringAsFixed(2)}',
+          value: AppFormatters.currency(product.sellingPrice),
           color: colorScheme.primary,
           icon: Icons.sell_outlined,
           subValue: 'Base / ${product.baseUom}',
@@ -371,7 +372,7 @@ class ProductDetailModal extends ConsumerWidget {
         final costTile = _buildMetricTile(
           context,
           label: 'COST PRICE',
-          value: '\$${product.costPrice.toStringAsFixed(2)}',
+          value: AppFormatters.currency(product.costPrice),
           color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
           icon: Icons.receipt_long_outlined,
           subValue: 'Unit Cost',

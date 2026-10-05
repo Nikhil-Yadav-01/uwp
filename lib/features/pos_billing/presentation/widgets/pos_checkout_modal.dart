@@ -5,6 +5,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../controllers/pos_cart_controller.dart';
 
@@ -113,7 +114,7 @@ class PosCheckoutModal extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${cartState.grandTotal.toStringAsFixed(2)}',
+                AppFormatters.currency(cartState.grandTotal),
                 style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.bold,
                   color: brandColor,

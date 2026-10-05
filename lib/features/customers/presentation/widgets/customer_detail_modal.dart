@@ -3,6 +3,7 @@ import '../../../../core/design/app_radii.dart';
 import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../domain/models/customer.dart';
 import 'customer_form_modal.dart';
 
@@ -129,7 +130,7 @@ class CustomerDetailModal extends StatelessWidget {
                   Expanded(
                     child: _buildStatCard(
                       label: 'Outstanding Balance',
-                      value: '\$${customer.outstandingBalance.toStringAsFixed(2)}',
+                      value: AppFormatters.currency(customer.outstandingBalance),
                       icon: Icons.account_balance_wallet_outlined,
                       color: customer.outstandingBalance > 0 ? AppColors.warning : AppColors.success,
                       isDark: isDark,

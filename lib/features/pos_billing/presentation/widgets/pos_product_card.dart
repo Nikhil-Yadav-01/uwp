@@ -4,6 +4,7 @@ import '../../../../core/design/app_sizes.dart';
 import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_formatters.dart';
 
 /// Tactile, responsive product card for the POS Counter Catalog.
 class PosProductCard extends StatelessWidget {
@@ -78,7 +79,7 @@ class PosProductCard extends StatelessWidget {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        '\$${price.toStringAsFixed(2)}',
+                        AppFormatters.currency(price),
                         style: AppTypography.headlineSmall.copyWith(
                           fontWeight: FontWeight.bold,
                           color: brandColor,

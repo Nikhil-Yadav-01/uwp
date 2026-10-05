@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../domain/models/sales_order.dart';
 import 'so_detail_modal.dart';
 import 'so_form_modal.dart';
@@ -133,7 +134,7 @@ class OutboundSoCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '\$${order.totalAmount.toStringAsFixed(2)}',
+                              AppFormatters.currency(order.totalAmount),
                               style: AppTypography.headlineSmall.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,
@@ -200,7 +201,7 @@ class OutboundSoCard extends StatelessWidget {
                                 ),
                                 AppGap.w8,
                                 Text(
-                                  '\$${item.unitPrice.toStringAsFixed(2)}',
+                                  AppFormatters.currency(item.unitPrice),
                                   style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
@@ -238,7 +239,7 @@ class OutboundSoCard extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '\$${order.totalAmount.toStringAsFixed(2)}',
+                              AppFormatters.currency(order.totalAmount),
                               style: AppTypography.bodyLarge.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.primary,

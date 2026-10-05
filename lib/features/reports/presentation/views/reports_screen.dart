@@ -6,6 +6,7 @@ import '../../../../core/design/app_typography.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../controllers/reports_controller.dart';
 
@@ -304,8 +305,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         DataCell(Text('+${inward.toInt()}', style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold))),
                         DataCell(Text('-${outward.toInt()}', style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold))),
                         DataCell(Text('${stock.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold))),
-                        DataCell(Text('\$${price.toStringAsFixed(2)}')),
-                        DataCell(Text('\$${totalVal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
+                        DataCell(Text(AppFormatters.currency(price))),
+                        DataCell(Text(AppFormatters.currency(totalVal), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))),
                       ],
                     );
                   }).toList(),
@@ -389,8 +390,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Unit Cost: \$${price.toStringAsFixed(2)}', style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
-                  Text('Valuation: \$${totalVal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text('Unit Cost: ${AppFormatters.currency(price)}', style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                  Text('Valuation: ${AppFormatters.currency(totalVal)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary)),
                 ],
               ),
             ],
@@ -402,10 +403,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _buildPurchaseInboundReport(ColorScheme colorScheme, bool isDark) {
     final samplePos = [
-      {'po': 'PO-2026-0012', 'vendor': 'ABC Traders', 'ordered': 150, 'received': 148, 'damaged': 2, 'cost': '\$14,800', 'status': 'Received'},
-      {'po': 'PO-2026-0011', 'vendor': 'Global Suppliers', 'ordered': 80, 'received': 80, 'damaged': 0, 'cost': '\$6,400', 'status': 'Received'},
-      {'po': 'PO-2026-0010', 'vendor': 'Tech Corporation', 'ordered': 50, 'received': 30, 'damaged': 1, 'cost': '\$28,500', 'status': 'Partial Intake'},
-      {'po': 'PO-2026-0009', 'vendor': 'Toscana Leather', 'ordered': 120, 'received': 120, 'damaged': 0, 'cost': '\$18,000', 'status': 'Received'},
+      {'po': 'PO-2026-0012', 'vendor': 'ABC Traders', 'ordered': 150, 'received': 148, 'damaged': 2, 'cost': '${AppFormatters.currencySymbol}14,800', 'status': 'Received'},
+      {'po': 'PO-2026-0011', 'vendor': 'Global Suppliers', 'ordered': 80, 'received': 80, 'damaged': 0, 'cost': '${AppFormatters.currencySymbol}6,400', 'status': 'Received'},
+      {'po': 'PO-2026-0010', 'vendor': 'Tech Corporation', 'ordered': 50, 'received': 30, 'damaged': 1, 'cost': '${AppFormatters.currencySymbol}28,500', 'status': 'Partial Intake'},
+      {'po': 'PO-2026-0009', 'vendor': 'Toscana Leather', 'ordered': 120, 'received': 120, 'damaged': 0, 'cost': '${AppFormatters.currencySymbol}18,000', 'status': 'Received'},
     ];
 
     return Container(

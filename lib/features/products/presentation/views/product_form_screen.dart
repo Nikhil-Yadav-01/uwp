@@ -8,6 +8,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/recipe_component.dart';
@@ -315,7 +316,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                   _buildSectionCard(
                     title: 'Pricing & Profitability',
                     subtitle: 'Cost, selling price, and real-time margin breakdown',
-                    icon: Icons.attach_money_rounded,
+                    icon: Icons.currency_rupee_rounded,
                     isDark: isDark,
                     colorScheme: colorScheme,
                     child: Column(
@@ -325,7 +326,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                             initialValue: formState.costPrice.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Cost Price *',
-                              prefixText: '\$ ',
+                              prefixText: '${AppFormatters.currencySymbol} ',
                               prefixIcon: Icon(Icons.receipt_long_outlined, size: AppSizes.iconSm),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -337,7 +338,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                             initialValue: formState.sellingPrice.toString(),
                             decoration: const InputDecoration(
                               labelText: 'Selling Price *',
-                              prefixText: '\$ ',
+                              prefixText: '${AppFormatters.currencySymbol} ',
                               prefixIcon: Icon(Icons.sell_outlined, size: AppSizes.iconSm),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -352,7 +353,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                                   initialValue: formState.costPrice.toString(),
                                   decoration: const InputDecoration(
                                     labelText: 'Cost Price *',
-                                    prefixText: '\$ ',
+                                    prefixText: '${AppFormatters.currencySymbol} ',
                                     prefixIcon: Icon(Icons.receipt_long_outlined, size: AppSizes.iconSm),
                                   ),
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -366,7 +367,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                                   initialValue: formState.sellingPrice.toString(),
                                   decoration: const InputDecoration(
                                     labelText: 'Selling Price *',
-                                    prefixText: '\$ ',
+                                    prefixText: '${AppFormatters.currencySymbol} ',
                                     prefixIcon: Icon(Icons.sell_outlined, size: AppSizes.iconSm),
                                   ),
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1215,7 +1216,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen>
                     ),
                   ),
                   Text(
-                    'Unit Markup: \$${profit.toStringAsFixed(2)}',
+                    'Unit Markup: ${AppFormatters.currency(profit)}',
                     style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       fontWeight: FontWeight.w600,

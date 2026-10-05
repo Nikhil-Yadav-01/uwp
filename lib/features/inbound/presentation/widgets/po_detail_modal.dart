@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../domain/models/purchase_order.dart';
@@ -167,8 +168,8 @@ class PoDetailModal extends ConsumerWidget {
     final items = [
       {
         'label': 'TOTAL VALUE',
-        'value': '\$${po.totalAmount.toStringAsFixed(2)}',
-        'icon': Icons.attach_money_rounded,
+        'value': AppFormatters.currency(po.totalAmount),
+        'icon': Icons.currency_rupee_rounded,
         'color': colorScheme.primary,
       },
       {
@@ -516,14 +517,14 @@ class PoDetailModal extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '\$${item.subtotal.toStringAsFixed(2)}',
+                          AppFormatters.currency(item.subtotal),
                           style: AppTypography.bodyMedium.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.primary,
                           ),
                         ),
                         Text(
-                          '\$${item.unitPrice.toStringAsFixed(2)} / ${item.uom}',
+                          '${AppFormatters.currency(item.unitPrice)} / ${item.uom}',
                           style: AppTypography.labelSmall.copyWith(
                             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                             fontSize: 10,

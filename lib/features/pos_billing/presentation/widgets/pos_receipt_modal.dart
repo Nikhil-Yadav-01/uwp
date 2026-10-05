@@ -4,6 +4,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../controllers/pos_cart_controller.dart';
 
@@ -112,7 +113,7 @@ class PosReceiptModal extends StatelessWidget {
                       ),
                       AppGap.w8,
                       Text(
-                        '\$${i.lineTotal.toStringAsFixed(2)}',
+                        AppFormatters.currency(i.lineTotal),
                         style: AppTypography.labelSmall.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -126,7 +127,7 @@ class PosReceiptModal extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Subtotal:', style: AppTypography.labelSmall),
-                  Text('\$${receipt.subtotal.toStringAsFixed(2)}', style: AppTypography.labelSmall.copyWith(fontFamily: 'monospace')),
+                  Text(AppFormatters.currency(receipt.subtotal), style: AppTypography.labelSmall.copyWith(fontFamily: 'monospace')),
                 ],
               ),
               AppGap.h4,
@@ -134,7 +135,7 @@ class PosReceiptModal extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('GST Tax (5%):', style: AppTypography.labelSmall),
-                  Text('\$${receipt.taxAmount.toStringAsFixed(2)}', style: AppTypography.labelSmall.copyWith(fontFamily: 'monospace')),
+                  Text(AppFormatters.currency(receipt.taxAmount), style: AppTypography.labelSmall.copyWith(fontFamily: 'monospace')),
                 ],
               ),
               const Divider(height: AppSpacing.md),
@@ -148,7 +149,7 @@ class PosReceiptModal extends StatelessWidget {
                     style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '\$${receipt.totalAmount.toStringAsFixed(2)}',
+                    AppFormatters.currency(receipt.totalAmount),
                     style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
                   ),
                 ],

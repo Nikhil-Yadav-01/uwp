@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../domain/models/packing_session.dart';
 import '../../domain/models/sales_order.dart';
 import 'shipping_label_modal.dart';
@@ -195,7 +196,7 @@ class OutboundShippingCard extends StatelessWidget {
                   runSpacing: AppSpacing.sm,
                   children: [
                     Text(
-                      'Value: \$${order.totalAmount.toStringAsFixed(2)} • ${order.items.length} item(s)',
+                      'Value: ${AppFormatters.currency(order.totalAmount)} • ${order.items.length} item(s)',
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,

@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../../../shared/presentation/shells/modal_shell.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
 import '../../../products/presentation/controllers/product_controller.dart';
@@ -252,8 +253,8 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                       controller: _priceController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
-                        labelText: 'Unit Cost (\$) *',
-                        prefixIcon: Icon(Icons.attach_money_outlined, size: AppSizes.iconSm),
+                        labelText: 'Unit Cost (${AppFormatters.currencySymbol}) *',
+                        prefixIcon: Icon(Icons.currency_rupee_outlined, size: AppSizes.iconSm),
                       ),
                       onChanged: (v) => setState(() => _unitPrice = double.tryParse(v) ?? 25.0),
                     ),
@@ -277,8 +278,8 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                             controller: _priceController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
-                              labelText: 'Unit Cost (\$) *',
-                              prefixIcon: Icon(Icons.attach_money_outlined, size: AppSizes.iconSm),
+                              labelText: 'Unit Cost (${AppFormatters.currencySymbol}) *',
+                              prefixIcon: Icon(Icons.currency_rupee_outlined, size: AppSizes.iconSm),
                             ),
                             onChanged: (v) => setState(() => _unitPrice = double.tryParse(v) ?? 25.0),
                           ),
@@ -428,7 +429,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
             ),
           ),
           Text(
-            '\$${totalEstimate.toStringAsFixed(2)}',
+            AppFormatters.currency(totalEstimate),
             style: AppTypography.headlineSmall.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.bold,
@@ -490,7 +491,7 @@ class _PoFormModalState extends ConsumerState<PoFormModal> {
                 ),
               ),
               Text(
-                '\$${totalEstimate.toStringAsFixed(2)}',
+                AppFormatters.currency(totalEstimate),
                 style: AppTypography.headlineSmall.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.bold,

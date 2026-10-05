@@ -34,7 +34,7 @@ class HospitalityArchetypeHandler implements IArchetypeFeatureHandler {
         id: 'recipe_margin',
         label: 'Cocktail BOM Margin',
         value: '78.5%',
-        subtitle: 'Average cost \$2.40 / sale \$16',
+        subtitle: 'Average cost ₹2.40 / sale ₹16',
         trend: '+1.5%',
         isPositiveTrend: true,
         icon: Icons.calculate_outlined,

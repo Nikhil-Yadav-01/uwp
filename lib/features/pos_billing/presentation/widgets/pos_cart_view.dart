@@ -6,6 +6,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../controllers/pos_cart_controller.dart';
 import 'pos_checkout_modal.dart';
 import 'pos_receipt_modal.dart';
@@ -113,7 +114,7 @@ class PosCartView extends ConsumerWidget {
                             ),
                             AppGap.h4,
                             Text(
-                              '\$${item.unitPrice.toStringAsFixed(2)} / ${item.uom}',
+                              '${AppFormatters.currency(item.unitPrice)} / ${item.uom}',
                               style: AppTypography.labelSmall.copyWith(
                                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                               ),
@@ -143,9 +144,9 @@ class PosCartView extends ConsumerWidget {
                       ),
                       AppGap.w4,
                       SizedBox(
-                        width: 65,
+                        width: 75,
                         child: Text(
-                          '\$${item.lineTotal.toStringAsFixed(2)}',
+                          AppFormatters.currency(item.lineTotal),
                           style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                             color: brandColor,
@@ -165,7 +166,7 @@ class PosCartView extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Subtotal:', style: AppTypography.bodySmall),
-              Text('\$${cartState.subtotal.toStringAsFixed(2)}', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+              Text(AppFormatters.currency(cartState.subtotal), style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           AppGap.h4,
@@ -173,7 +174,7 @@ class PosCartView extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Estimated Tax (5% GST):', style: AppTypography.bodySmall),
-              Text('\$${cartState.taxAmount.toStringAsFixed(2)}', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+              Text(AppFormatters.currency(cartState.taxAmount), style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           AppGap.h8,
@@ -182,7 +183,7 @@ class PosCartView extends ConsumerWidget {
             children: [
               Text('Grand Total:', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
               Text(
-                '\$${cartState.grandTotal.toStringAsFixed(2)}',
+                AppFormatters.currency(cartState.grandTotal),
                 style: AppTypography.headlineMedium.copyWith(
                   fontWeight: FontWeight.bold,
                   color: brandColor,
@@ -220,7 +221,7 @@ class PosCartView extends ConsumerWidget {
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.point_of_sale_rounded, size: 18),
               label: Text(
-                cartState.isProcessing ? 'Processing Payment...' : 'Pay & Complete Sale (\$${cartState.grandTotal.toStringAsFixed(2)})',
+                cartState.isProcessing ? 'Processing Payment...' : 'Pay & Complete Sale (${AppFormatters.currency(cartState.grandTotal)})',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),

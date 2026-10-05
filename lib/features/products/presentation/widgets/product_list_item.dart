@@ -5,6 +5,7 @@ import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_formatters.dart';
 import '../../domain/models/product.dart';
 
 /// Highly organized, responsive product list item adaptable for Mobile, Tablet, and Desktop.
@@ -149,7 +150,7 @@ class ProductListItem extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '\$${product.sellingPrice.toStringAsFixed(2)}',
+                        AppFormatters.currency(product.sellingPrice),
                         style: AppTypography.bodyLarge.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
@@ -161,7 +162,7 @@ class ProductListItem extends StatelessWidget {
                   ),
                   AppGap.h4,
                   Text(
-                    'Cost: \$${product.costPrice.toStringAsFixed(2)}',
+                    'Cost: ${AppFormatters.currency(product.costPrice)}',
                     style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                     ),
@@ -608,7 +609,7 @@ class ProductListItem extends StatelessWidget {
                 ),
                 AppGap.h4,
                 Text(
-                  '\$${product.sellingPrice.toStringAsFixed(2)}',
+                  AppFormatters.currency(product.sellingPrice),
                   style: AppTypography.labelMedium.copyWith(
                     fontWeight: FontWeight.bold,
                     color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
@@ -616,7 +617,7 @@ class ProductListItem extends StatelessWidget {
                 ),
                 AppGap.h4,
                 Text(
-                  'Cost: \$${product.costPrice.toStringAsFixed(2)}',
+                  'Cost: ${AppFormatters.currency(product.costPrice)}',
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   ),
