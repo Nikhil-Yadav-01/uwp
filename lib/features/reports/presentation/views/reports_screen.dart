@@ -331,7 +331,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: products.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final item = products[index];
         final stock = (item['stock'] as num? ?? 0).toDouble();
@@ -472,7 +472,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: samplePos.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final po = samplePos[index];
         final damaged = po['damaged'] as int;
@@ -600,7 +600,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: sampleSos.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final so = sampleSos[index];
         return Container(
@@ -726,7 +726,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: products.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final item = products[index];
         final stock = (item['stock'] as num? ?? 0).toDouble();

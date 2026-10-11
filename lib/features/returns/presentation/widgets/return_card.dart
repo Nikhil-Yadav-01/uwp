@@ -161,8 +161,8 @@ class ReturnCard extends StatelessWidget {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               reasonPill,
-                              if (trackingPill != null) trackingPill,
-                              if (binPill != null) binPill,
+                              ?trackingPill,
+                              ?binPill,
                             ],
                           ),
                         ],
@@ -201,9 +201,9 @@ class ReturnCard extends StatelessWidget {
                           AppGap.h8,
                           Row(
                             children: [
-                              if (trackingPill != null) trackingPill,
+                              ?trackingPill,
                               if (trackingPill != null && binPill != null) AppGap.w12,
-                              if (binPill != null) binPill,
+                              ?binPill,
                             ],
                           ),
                         ],

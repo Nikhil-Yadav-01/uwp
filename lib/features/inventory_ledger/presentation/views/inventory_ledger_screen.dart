@@ -527,7 +527,7 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: products.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final item = products[index];
         final stock = (item['stock'] as num? ?? 0).toDouble();

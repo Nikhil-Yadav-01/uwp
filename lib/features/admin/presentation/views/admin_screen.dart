@@ -311,7 +311,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: users.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final user = users[index];
         return Container(
@@ -512,7 +512,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: logs.length,
-      separatorBuilder: (_, __) => AppGap.h12,
+      separatorBuilder: (_, _) => AppGap.h12,
       itemBuilder: (context, index) {
         final log = logs[index];
         return Container(
