@@ -85,16 +85,32 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            isDark ? AppColors.darkCard : Colors.white,
+            isDark
+                ? Color.alphaBlend(AppColors.secondary.withValues(alpha: 0.05), AppColors.darkCard)
+                : Color.alphaBlend(AppColors.secondary.withValues(alpha: 0.03), AppColors.lightCard),
+          ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.secondary.withValues(alpha: 0.22)
+              : AppColors.secondary.withValues(alpha: 0.15),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: AppColors.secondary.withValues(alpha: isDark ? 0.05 : 0.02),
+            blurRadius: 24,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -109,18 +125,38 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.15),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.secondary.withValues(alpha: 0.25),
+                          AppColors.secondary.withValues(alpha: 0.10),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(
+                        color: AppColors.secondary.withValues(alpha: 0.35),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(Icons.history_edu_rounded, size: 18, color: AppColors.secondary),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Flexible(
                     child: Text(
                       'Live Floor Activity & Audit Trail',
-                      style: AppTypography.h3,
+                      style: AppTypography.h3.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -130,9 +166,16 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
 
               final actionButton = InkWell(
                 onTap: () => context.push('/ledger'),
-                borderRadius: BorderRadius.circular(4),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.08),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.2),
+                    ),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -140,11 +183,11 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                         'Full Ledger',
                         style: AppTypography.caption.copyWith(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
+                      const Icon(Icons.arrow_forward_rounded, size: 13, color: AppColors.primary),
                     ],
                   ),
                 ),
@@ -155,7 +198,7 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     titleRow,
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     actionButton,
                   ],
                 );
@@ -176,9 +219,10 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
             'Chronological feed of physical stock receipts, wave picks, packing, and carrier dispatches',
             style: AppTypography.caption.copyWith(
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              height: 1.35,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Event Filter Chips
           SingleChildScrollView(
@@ -199,7 +243,12 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
           ),
 
           const SizedBox(height: AppSpacing.md),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.07)
+                : Colors.black.withValues(alpha: 0.06),
+          ),
           const SizedBox(height: AppSpacing.sm),
 
           // Activity List
@@ -209,13 +258,24 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface.withValues(alpha: 0.3) : AppColors.lightSurface,
+                  color: isDark
+                      ? AppColors.darkSurface.withValues(alpha: 0.45)
+                      : Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? item.color.withValues(alpha: 0.18)
+                        : item.color.withValues(alpha: 0.14),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,8 +284,24 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                       margin: const EdgeInsets.only(top: 2),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: item.color.withValues(alpha: 0.12),
+                        gradient: LinearGradient(
+                          colors: [
+                            item.color.withValues(alpha: 0.22),
+                            item.color.withValues(alpha: 0.08),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: item.color.withValues(alpha: 0.3),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: item.color.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                          ),
+                        ],
                       ),
                       child: Icon(Icons.flash_on_rounded, size: 14, color: item.color),
                     ),
@@ -237,17 +313,22 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: item.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: item.color.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: item.color.withValues(alpha: 0.25),
+                                    width: 0.8,
+                                  ),
                                 ),
                                 child: Text(
                                   item.refCode,
                                   style: AppTypography.monospace.copyWith(
                                     fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     color: item.color,
+                                    letterSpacing: 0.3,
                                   ),
                                 ),
                               ),
@@ -255,7 +336,9 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                               Expanded(
                                 child: Text(
                                   item.title,
-                                  style: AppTypography.bodyBold,
+                                  style: AppTypography.bodyBold.copyWith(
+                                    letterSpacing: -0.2,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -265,29 +348,36 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
                                 style: AppTypography.caption.copyWith(
                                   color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                                   fontSize: 10,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Text(
                             item.description,
                             style: AppTypography.caption.copyWith(
                               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              height: 1.35,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
-                              Icon(Icons.person_outline_rounded, size: 12, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
+                              Icon(
+                                Icons.person_outline_rounded,
+                                size: 12,
+                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 item.operator,
                                 style: AppTypography.caption.copyWith(
                                   color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                                   fontSize: 10,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -307,27 +397,46 @@ class _LiveFloorActivityFeedState extends ConsumerState<LiveFloorActivityFeed> {
 
   Widget _filterChip(String filterKey, String label, bool isDark) {
     final isSelected = _selectedFilter == filterKey;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
+    return InkWell(
+      onTap: () {
         setState(() {
           _selectedFilter = filterKey;
         });
       },
-      selectedColor: AppColors.primary,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-      labelStyle: AppTypography.caption.copyWith(
-        color: isSelected
-            ? Colors.white
-            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-        fontSize: 11,
-      ),
-      side: BorderSide(
-        color: isSelected
-            ? AppColors.primary
-            : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary
+              : (isDark ? AppColors.darkSurface.withValues(alpha: 0.5) : AppColors.lightSurface),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 11,
+          ),
+        ),
       ),
     );
   }

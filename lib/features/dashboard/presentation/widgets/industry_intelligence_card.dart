@@ -20,16 +20,33 @@ class IndustryIntelligenceCard extends ConsumerWidget {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.darkCard,
+                  Color.alphaBlend(archetype.brandColor.withValues(alpha: 0.08), const Color(0xFF0F172A)),
+                ]
+              : [
+                  Colors.white,
+                  Color.alphaBlend(archetype.brandColor.withValues(alpha: 0.04), const Color(0xFFF8FAFC)),
+                ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: archetype.brandColor.withValues(alpha: 0.35),
+          color: archetype.brandColor.withValues(alpha: isDark ? 0.35 : 0.28),
         ),
         boxShadow: [
           BoxShadow(
-            color: archetype.brandColor.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: archetype.brandColor.withValues(alpha: isDark ? 0.12 : 0.06),
+            blurRadius: 20,
             offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -44,15 +61,15 @@ class IndustryIntelligenceCard extends ConsumerWidget {
               final infoWidget = Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
                       color: archetype.brandColor,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: archetype.brandColor.withValues(alpha: 0.3),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                          color: archetype.brandColor.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -172,11 +189,30 @@ class IndustryIntelligenceCard extends ConsumerWidget {
                   return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                Color.alphaBlend(kpi.color.withValues(alpha: 0.08), AppColors.darkSurface),
+                                AppColors.darkSurface.withValues(alpha: 0.5),
+                              ]
+                            : [
+                                Color.alphaBlend(kpi.color.withValues(alpha: 0.05), Colors.white),
+                                AppColors.lightSurface,
+                              ],
+                      ),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       border: Border.all(
-                        color: kpi.color.withValues(alpha: 0.25),
+                        color: kpi.color.withValues(alpha: 0.3),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kpi.color.withValues(alpha: 0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,13 +234,21 @@ class IndustryIntelligenceCard extends ConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            Icon(kpi.icon, size: 16, color: kpi.color),
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: kpi.color.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(kpi.icon, size: 14, color: kpi.color),
+                            ),
                           ],
                         ),
                         Text(
                           kpi.value,
                           style: AppTypography.h2.copyWith(
                             fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
                             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                           ),
                           maxLines: 1,

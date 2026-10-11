@@ -60,16 +60,35 @@ class UrgentExceptionsPanel extends ConsumerWidget {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.darkCard,
+                  Color.alphaBlend(AppColors.error.withValues(alpha: 0.05), const Color(0xFF0F172A)),
+                ]
+              : [
+                  Colors.white,
+                  Color.alphaBlend(AppColors.error.withValues(alpha: 0.03), const Color(0xFFF8FAFC)),
+                ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.error.withValues(alpha: 0.25)
+              : AppColors.error.withValues(alpha: 0.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: AppColors.error.withValues(alpha: isDark ? 0.08 : 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -84,10 +103,18 @@ class UrgentExceptionsPanel extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.error.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(Icons.crisis_alert_rounded, size: 18, color: AppColors.error),
                   ),
@@ -104,17 +131,25 @@ class UrgentExceptionsPanel extends ConsumerWidget {
               );
 
               final badgeWidget = Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: Text(
                   '${stats.lowStockCount + stats.pendingPutawayCount} ACTIONABLE ITEMS',
                   style: AppTypography.caption.copyWith(
                     color: AppColors.error,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
                     fontSize: 10,
                   ),
                 ),
@@ -199,77 +234,108 @@ class UrgentExceptionsPanel extends ConsumerWidget {
 
   Widget _buildExceptionCard(_ExceptionItemData item, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.darkSurface.withValues(alpha: 0.5)
             : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(
-          color: item.badgeColor.withValues(alpha: 0.35),
+          color: item.badgeColor.withValues(alpha: 0.3),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: item.badgeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  item.metricBadge,
-                  style: AppTypography.caption.copyWith(
-                    color: item.badgeColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: item.onAction,
-                borderRadius: BorderRadius.circular(4),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
-                    children: [
-                      Text(
-                        item.actionLabel,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(item.actionIcon, size: 14, color: AppColors.primary),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.title,
-            style: AppTypography.bodyBold,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item.description,
-            style: AppTypography.caption.copyWith(
-              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-              fontSize: 11,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        boxShadow: [
+          BoxShadow(
+            color: item.badgeColor.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: item.badgeColor,
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(AppSpacing.radiusMd)),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: item.badgeColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: item.badgeColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            item.metricBadge,
+                            style: AppTypography.caption.copyWith(
+                              color: item.badgeColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: item.onAction,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  item.actionLabel,
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(item.actionIcon, size: 13, color: AppColors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.title,
+                      style: AppTypography.bodyBold,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.description,
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                        fontSize: 11,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -18,16 +18,35 @@ class ExecutiveCommandBar extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.darkCard,
+                  const Color(0xFF131D2E),
+                ]
+              : [
+                  Colors.white,
+                  const Color(0xFFF8FAFC),
+                ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : AppColors.primary.withValues(alpha: 0.14),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            color: AppColors.primary.withValues(alpha: isDark ? 0.06 : 0.04),
+            blurRadius: 18,
             offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -44,8 +63,8 @@ class ExecutiveCommandBar extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      color: isDark ? AppColors.darkSurface.withValues(alpha: 0.6) : AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                       ),
@@ -162,29 +181,40 @@ class ExecutiveCommandBar extends ConsumerWidget {
 
                   // Live Status Indicator
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.success.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.success,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            color: AppColors.success.withValues(alpha: 0.25),
+                          ),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 7),
                         Text(
                           'LIVE SYNC',
                           style: AppTypography.caption.copyWith(
                             color: AppColors.success,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.6,
+                            fontSize: 10,
                           ),
                         ),
                       ],
@@ -199,28 +229,28 @@ class ExecutiveCommandBar extends ConsumerWidget {
                 children: [
                   _actionButton(
                     context: context,
-                    label: '+ PO Inbound',
+                    label: 'PO Inbound',
                     icon: Icons.add_shopping_cart_rounded,
                     color: AppColors.primary,
                     onTap: () => context.push('/inbound'),
                   ),
                   _actionButton(
                     context: context,
-                    label: '📥 Scan GRN',
+                    label: 'Scan GRN',
                     icon: Icons.qr_code_scanner_rounded,
                     color: AppColors.info,
                     onTap: () => context.push('/scanner'),
                   ),
                   _actionButton(
                     context: context,
-                    label: '⚡ Pick Wave',
+                    label: 'Pick Wave',
                     icon: Icons.bolt_rounded,
                     color: AppColors.warning,
                     onTap: () => context.push('/outbound'),
                   ),
                   _actionButton(
                     context: context,
-                    label: '⇄ Stock Move',
+                    label: 'Stock Move',
                     icon: Icons.sync_alt_rounded,
                     color: AppColors.secondary,
                     onTap: () => context.push('/ledger'),
@@ -259,23 +289,48 @@ class ExecutiveCommandBar extends ConsumerWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color,
+            Color.alphaBlend(Colors.black.withValues(alpha: 0.18), color),
+          ],
         ),
-        elevation: 0,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      icon: Icon(icon, size: 16),
-      label: Text(
-        label,
-        style: AppTypography.caption.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 15, color: Colors.white),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

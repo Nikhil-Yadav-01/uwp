@@ -54,16 +54,35 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.darkCard,
+                  Color.alphaBlend(AppColors.info.withValues(alpha: 0.05), const Color(0xFF0F172A)),
+                ]
+              : [
+                  Colors.white,
+                  Color.alphaBlend(AppColors.info.withValues(alpha: 0.03), const Color(0xFFF8FAFC)),
+                ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.info.withValues(alpha: 0.2)
+              : AppColors.info.withValues(alpha: 0.15),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: AppColors.info.withValues(alpha: isDark ? 0.06 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -77,10 +96,18 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: AppColors.info.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.info.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(Icons.bar_chart_rounded, size: 18, color: AppColors.info),
                   ),
@@ -146,33 +173,60 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 14,
-                        height: inHeight,
-                        decoration: BoxDecoration(
-                          color: AppColors.info,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+                  Container(
+                    height: 125,
+                    alignment: Alignment.bottomCenter,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: 12,
+                          height: inHeight,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [AppColors.info, Color(0xFF38BDF8)],
+                            ),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.info.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, -1),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 3),
-                      Container(
-                        width: 14,
-                        height: outHeight,
-                        decoration: const BoxDecoration(
-                          color: AppColors.success,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(3)),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 12,
+                          height: outHeight,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [AppColors.success, Color(0xFF34D399)],
+                            ),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.success.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, -1),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     slot.time,
                     style: AppTypography.monospace.copyWith(
                       fontSize: 10,
+                      fontWeight: FontWeight.w600,
                       color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                     ),
                   ),
@@ -238,16 +292,35 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.darkCard,
+                  Color.alphaBlend(AppColors.primary.withValues(alpha: 0.05), const Color(0xFF0F172A)),
+                ]
+              : [
+                  Colors.white,
+                  Color.alphaBlend(AppColors.primary.withValues(alpha: 0.03), const Color(0xFFF8FAFC)),
+                ],
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.primary.withValues(alpha: 0.18)
+              : AppColors.primary.withValues(alpha: 0.14),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: AppColors.primary.withValues(alpha: isDark ? 0.06 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -261,10 +334,18 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(Icons.pie_chart_outline_rounded, size: 18, color: AppColors.primary),
                   ),
@@ -368,11 +449,20 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            '${wh.occupancyPercent.toStringAsFixed(0)}%',
-                            style: AppTypography.caption.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: color,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: color.withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              '${wh.occupancyPercent.toStringAsFixed(0)}%',
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                                fontSize: 10.5,
+                              ),
                             ),
                           ),
                         ],
@@ -381,12 +471,12 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(5),
                     child: LinearProgressIndicator(
                       value: wh.occupancyPercent / 100,
-                      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      backgroundColor: isDark ? AppColors.darkSurface.withValues(alpha: 0.6) : AppColors.lightSurface,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
-                      minHeight: 8,
+                      minHeight: 7,
                     ),
                   ),
                 ],
@@ -405,14 +495,23 @@ class VelocityAndCapacityGrid extends ConsumerWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.45),
+                blurRadius: 4,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 5),
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            fontSize: 10.5,
           ),
         ),
       ],
