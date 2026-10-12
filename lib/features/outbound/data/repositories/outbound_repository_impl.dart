@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/data/datasources/sample_data_source.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/result.dart';
 import '../../domain/models/sales_order.dart';
@@ -23,171 +24,20 @@ class OutboundRepositoryImpl implements IOutboundRepository {
   }
 
   void _seedInitialData() {
-    final now = DateTime.now();
+    _orders.addAll(SampleDataSource.getSalesOrders());
 
-    // 1. Healthcare Emergency Order: ICU Ward #4 Emergency Narcotics & Antibiotics
-    final hospitalOrder = SalesOrder(
-      id: 'SO-HC-001',
-      soNumber: 'SO-2026-HOSP-402',
-      customerName: 'St. Jude Memorial Hospital (ICU Crash Cart)',
-      customerType: CustomerType.hospitalWard,
-      destinationWardOrAddress: 'ICU Ward 4 • Station 2B (Emergency)',
-      orderDate: now.subtract(const Duration(hours: 3)),
-      requiredDeliveryDate: now.add(const Duration(hours: 2)),
-      priority: OrderPriority.emergencyCrashCart,
-      status: OutboundStatus.picking,
-      archetypeId: 'healthcare_pharma',
-      notes: 'EMERGENCY: Immediate replenishment for ICU Crash Cart #3. Schedule II dual-signoff on delivery.',
-      items: [
-        SalesOrderItem(
-          id: 'SOI-HC-01',
-          productId: 'prod_hc_3',
-          productName: 'Fentanyl Citrate 50mcg/ml Injection (Ampoule 2ml)',
-          sku: 'HC-FNT-50MCG-AMP',
-          requestedQty: 10.0,
-          pickedQty: 10.0,
-          unitPrice: 95.00,
-          uom: 'vial',
-          customAttributes: {
-            'batchLot': 'LOT-FNT-9981-SEC',
-            'controlledSchedule': 'Schedule II',
-            'requiresDualSignoff': true,
-          },
-        ),
-        SalesOrderItem(
-          id: 'SOI-HC-02',
-          productId: 'prod_hc_1',
-          productName: 'Amoxicillin 500mg Trihydrate Capsules',
-          sku: 'HC-AMX-500-BX',
-          requestedQty: 5.0,
-          pickedQty: 5.0,
-          unitPrice: 18.00,
-          uom: 'box',
-          customAttributes: {
-            'batchLot': 'LOT-AMX-2026B',
-          },
-        ),
-      ],
-    );
+    // Generate initial picking wave for picking orders
+    final pickingOrders = _orders.where((o) => o.status == OutboundStatus.picking || o.status == OutboundStatus.allocated).toList();
+    if (pickingOrders.isNotEmpty) {
+      final wave1 = _waveEngine.generateOptimizedWave(
+        orders: pickingOrders,
+        assignedPickerName: 'Alex Carter (Voice Picking PDA #3)',
+        zone: 'Zone A & High-Security Vault Zone',
+      );
+      _waves.add(wave1);
+    }
 
-    // 2. Hospitality Order: Friday Night Restock for Main Bar & Cocktail Lounge
-    final barOrder = SalesOrder(
-      id: 'SO-BAR-002',
-      soNumber: 'SO-2026-BAR-771',
-      customerName: 'The Speakeasy Cocktail Lounge & Grill',
-      customerType: CustomerType.barCounter,
-      destinationWardOrAddress: 'Main Bar Tap Station 01 (Downstairs)',
-      orderDate: now.subtract(const Duration(hours: 5)),
-      priority: OrderPriority.rush,
-      status: OutboundStatus.allocated,
-      archetypeId: 'bars_hospitality',
-      items: [
-        SalesOrderItem(
-          id: 'SOI-BAR-01',
-          productId: 'prod_bar_1',
-          productName: 'Highland Single Malt Scotch (750ml, 43% ABV)',
-          sku: 'BAR-SCOTCH-750',
-          requestedQty: 6.0,
-          unitPrice: 58.00,
-          uom: 'bottle',
-        ),
-      ],
-    );
-
-    // 3. Grocery Order: Retail Fresh Store FEFO Pick
-    final groceryOrder = SalesOrder(
-      id: 'SO-GROC-003',
-      soNumber: 'SO-2026-GROC-109',
-      customerName: 'Metro Green Supermarket Downtown',
-      customerType: CustomerType.b2bWholesale,
-      destinationWardOrAddress: 'Dock 4 • Bay Area Distribution Hub',
-      orderDate: now.subtract(const Duration(hours: 6)),
-      priority: OrderPriority.standard,
-      status: OutboundStatus.pending,
-      archetypeId: 'grocery_foods',
-      items: [
-        SalesOrderItem(
-          id: 'SOI-GROC-01',
-          productId: 'prod_groc_1',
-          productName: 'Organic Whole Milk (1L Glass Bottle)',
-          sku: 'GROC-MILK-1L',
-          requestedQty: 48.0,
-          unitPrice: 4.50,
-          uom: 'carton',
-          customAttributes: {
-            'batchLot': 'LOT-MLK-8812',
-            'expirationDate': now.add(const Duration(days: 14)).toIso8601String(),
-          },
-        ),
-      ],
-    );
-
-    // 4. Electronics Order: 10-Unit Tech Store Shipment
-    final techOrder = SalesOrder(
-      id: 'SO-TECH-004',
-      soNumber: 'SO-2026-TECH-902',
-      customerName: 'GadgetZone MegaStore (Branch #12)',
-      customerType: CustomerType.retailStore,
-      destinationWardOrAddress: 'Unit 402 Tech Plaza, Silicon Ave',
-      orderDate: now.subtract(const Duration(days: 1)),
-      priority: OrderPriority.standard,
-      status: OutboundStatus.packed,
-      archetypeId: 'electronics_tech',
-      items: [
-        SalesOrderItem(
-          id: 'SOI-TECH-01',
-          productId: 'prod_tech_1',
-          productName: 'Apex Phone 16 Pro (256GB Midnight Black)',
-          sku: 'TECH-APEX16P-256-BLK',
-          requestedQty: 5.0,
-          pickedQty: 5.0,
-          packedQty: 5.0,
-          unitPrice: 1099.00,
-          uom: 'unit',
-        ),
-      ],
-    );
-
-    _orders.addAll([hospitalOrder, barOrder, groceryOrder, techOrder]);
-
-    // Initial Picking Wave for the Healthcare Emergency Order & Bar Order
-    final wave1 = _waveEngine.generateOptimizedWave(
-      orders: [hospitalOrder, barOrder],
-      assignedPickerName: 'Alex Carter (Voice Picking PDA #3)',
-      zone: 'Zone A & High-Security Vault Zone',
-    );
-    _waves.add(wave1);
-
-    // Initial Packing Session for Tech Order
-    _packingSessions.add(
-      PackingSession(
-        id: 'PACK-TECH-001',
-        orderId: techOrder.id,
-        soNumber: techOrder.soNumber,
-        customerName: techOrder.customerName,
-        destination: techOrder.destinationWardOrAddress,
-        packerName: 'Elena Rostova (Station 02)',
-        status: PackingStatus.shippingLabelGenerated,
-        boxCount: 1,
-        totalWeightKg: 2.8,
-        trackingNumber: 'TRK-2026-FEDEX-998812',
-        shippingCarrier: 'FedEx Priority Air Overnight',
-        magicTrackingUrl: 'https://wms.universal.io/track/TRK-2026-FEDEX-998812',
-        startedAt: now.subtract(const Duration(minutes: 45)),
-        completedAt: now.subtract(const Duration(minutes: 10)),
-        scannedItems: [
-          PackedItem(
-            productId: 'prod_tech_1',
-            productName: 'Apex Phone 16 Pro (256GB Midnight Black)',
-            sku: 'TECH-APEX16P-256-BLK',
-            barcode: 'TECH-APEX16P-256-BLK-SN1001',
-            quantity: 5.0,
-            uom: 'unit',
-            scannedAt: now.subtract(const Duration(minutes: 15)),
-          ),
-        ],
-      ),
-    );
+    _packingSessions.addAll(SampleDataSource.getPackingSessions());
   }
 
   @override

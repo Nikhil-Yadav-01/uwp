@@ -21,7 +21,7 @@ extension ReturnReasonExtension on ReturnReason {
       case ReturnReason.defectiveItem:
         return 'Defective / Quality Issue';
       case ReturnReason.undeliveredRto:
-        return 'RTO (Undelivered / Address Issue)';
+        return 'Returned by Courier (Address Issue)';
     }
   }
 }
@@ -40,13 +40,13 @@ extension ReturnStatusExtension on ReturnStatus {
       case ReturnStatus.pending:
         return 'Pending Review';
       case ReturnStatus.approved:
-        return 'Approved / In-Transit';
+        return 'Approved (Returning)';
       case ReturnStatus.received:
-        return 'Received at Dock';
+        return 'Received at Warehouse';
       case ReturnStatus.restocked:
-        return 'Restocked to Bin';
+        return 'Restocked on Shelf';
       case ReturnStatus.scrapped:
-        return 'Scrapped / RMA Return';
+        return 'Damaged / Returned to Supplier';
     }
   }
 

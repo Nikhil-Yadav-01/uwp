@@ -144,7 +144,7 @@ class _InboundScreenState extends ConsumerState<InboundScreen> {
             ),
             AppGap.h4,
             Text(
-              'Dock intake, QC inspection gate & directed putaway for ${archetype.name}',
+              'Receive supplier deliveries, inspect item quality, and store stock on shelves',
               style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
               ),
@@ -197,29 +197,29 @@ class _InboundScreenState extends ConsumerState<InboundScreen> {
     final stages = [
       {
         'stage': '1',
-        'title': 'PO Pipeline',
-        'count': '$pendingPoCount Orders',
+        'title': '1. Orders Placed',
+        'count': '$pendingPoCount Orders Waiting',
         'icon': Icons.description_outlined,
         'color': AppColors.info,
       },
       {
         'stage': '2',
-        'title': 'Dock Intake',
-        'count': '$dockCount Shipments',
+        'title': '2. Arrived at Door',
+        'count': '$dockCount Deliveries',
         'icon': Icons.local_shipping_outlined,
         'color': AppColors.warning,
       },
       {
         'stage': '3',
-        'title': 'QC Inspection',
+        'title': '3. Quality Check',
         'count': '$qcCount Batches',
         'icon': Icons.fact_check_outlined,
         'color': archetype.brandColor as Color,
       },
       {
         'stage': '4',
-        'title': 'Directed Putaway',
-        'count': '$putawayCount Tasks',
+        'title': '4. Put on Shelves',
+        'count': '$putawayCount Shelving Tasks',
         'icon': Icons.move_to_inbox_outlined,
         'color': AppColors.success,
       },

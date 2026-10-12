@@ -17,23 +17,23 @@ extension OutboundStatusExtension on OutboundStatus {
   String get label {
     switch (this) {
       case OutboundStatus.pending:
-        return 'Pending';
+        return 'Waiting to Process';
       case OutboundStatus.allocated:
-        return 'Allocated';
+        return 'Stock Reserved for Order';
       case OutboundStatus.waveAssigned:
-        return 'Wave Assigned';
+        return 'Added to Pick List';
       case OutboundStatus.picking:
-        return 'Picking';
+        return 'Gathering from Shelves';
       case OutboundStatus.picked:
-        return 'Picked';
+        return 'All Items Gathered';
       case OutboundStatus.packing:
-        return 'Packing';
+        return 'Packing into Box';
       case OutboundStatus.packed:
-        return 'Packed';
+        return 'Packed & Ready to Ship';
       case OutboundStatus.shipped:
-        return 'Shipped';
+        return 'Handed to Courier (Shipped)';
       case OutboundStatus.delivered:
-        return 'Delivered';
+        return 'Delivered to Customer';
       case OutboundStatus.cancelled:
         return 'Cancelled';
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -76,67 +77,16 @@ class ElectronicsArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'ELE-001',
-        'name': 'Apple iPhone 15 Pro Max 256GB',
-        'sku': 'ELE-IP15PM-256-NT',
-        'barcode': '195949012345',
-        'category': 'Smartphones',
-        'stock': 42.0,
-        'uom': 'Units',
-        'unitPrice': 1199.00,
-        'customAttributes': {
-          'serial_no': 'G6TX9012KLP',
-          'imei_1': '358921094827104',
-          'imei_2': '358921094827112',
-          'condition': 'Brand New (Sealed)',
-          'warranty_months': '12 Months AppleCare',
-          'firmware': 'iOS 17.5',
-        },
-      },
-      {
-        'id': 'ELE-002',
-        'name': 'Sony WH-1000XM5 Noise Canceling',
-        'sku': 'ELE-SNY-XM5-SLV',
-        'barcode': '027242921002',
-        'category': 'Audio & Headphones',
-        'stock': 88.0,
-        'uom': 'Units',
-        'unitPrice': 348.00,
-        'customAttributes': {
-          'serial_no': 'SNY-XM5-89421',
-          'condition': 'Brand New',
-          'warranty_months': '24 Months Sony',
-          'color': 'Silver Platinum',
-        },
-      },
-      {
-        'id': 'ELE-003',
-        'name': 'MacBook Pro 16" M3 Max 36GB/1TB',
-        'sku': 'ELE-MBP16-M3M-1T',
-        'barcode': '195949098765',
-        'category': 'Laptops & Computers',
-        'stock': 18.0,
-        'uom': 'Units',
-        'unitPrice': 3499.00,
-        'customAttributes': {
-          'serial_no': 'C02GK999LPM3',
-          'condition': 'Refurbished Grade A+',
-          'warranty_months': '12 Months Certified',
-          'battery_health': '100% (4 Cycles)',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Inbound Scan: Dual IMEI 1 & 2 + Serial Verification',
-      'OEM Direct Warranty Registration & RMA Processing',
-      'Refurbishment Condition Grading (Grade A/B/C/Defective)',
-      'High-Value Vault Two-Person Audit Authorization',
+      'Scan Serial Number & Phone ID (IMEI) at Receiving',
+      'Manufacturer Warranty Registration & Returns',
+      'Device Condition Grading (Like-New, Good, Defective)',
+      'High-Value Locked Vault Double-Approval Access',
     ];
   }
 }

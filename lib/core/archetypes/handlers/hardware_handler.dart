@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -73,68 +74,16 @@ class HardwareArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'HDW-001',
-        'name': 'Brembo Ceramic Front Brake Pad Set',
-        'sku': 'HDW-BRM-P83085N',
-        'barcode': '802058401234',
-        'category': 'Brake Systems',
-        'stock': 64.0,
-        'uom': 'Set',
-        'unitPrice': 89.50,
-        'customAttributes': {
-          'oem_part_number': '04465-42190',
-          'bin_location': 'Aisle 04-Rack B-Bin 12',
-          'weight_kg': 1.85,
-          'vehicle_fitment': 'Toyota RAV4 / Camry (2019-2024)',
-          'is_hazardous': false,
-        },
-      },
-      {
-        'id': 'HDW-002',
-        'name': 'Bosch High-Pressure Common Rail Fuel Injector',
-        'sku': 'HDW-BSH-0445110',
-        'barcode': '404702409876',
-        'category': 'Fuel Delivery',
-        'stock': 28.0,
-        'uom': 'pcs',
-        'unitPrice': 245.00,
-        'customAttributes': {
-          'oem_part_number': '13537805428',
-          'bin_location': 'Aisle 02-Rack A-Bin 04',
-          'weight_kg': 0.65,
-          'vehicle_fitment': 'BMW N47 / N57 Diesel Engines',
-          'is_hazardous': false,
-        },
-      },
-      {
-        'id': 'HDW-003',
-        'name': 'Industrial Lithium Synthetic Grease (400g Tube)',
-        'sku': 'HDW-LUB-SYN-400',
-        'barcode': '404702488888',
-        'category': 'Chemicals & Lubricants',
-        'stock': 150.0,
-        'uom': 'Tube',
-        'unitPrice': 12.00,
-        'customAttributes': {
-          'oem_part_number': 'NLGI-GC-LB-02',
-          'bin_location': 'Zone H-Flammable Bay 3',
-          'weight_kg': 0.40,
-          'is_hazardous': true,
-          'hazmat_class': 'Class 3 Flammable Solid',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'High-Density Bin Location Routing (Aisle-Rack-Shelf-Bin)',
-      'OEM Part Number & Interchange Cross-Referencing',
-      'HAZMAT Chemical Zone Safety Protocol Checklist',
-      'Weight Scale Verification for Fastener & Bulk Hardware Kits',
+      'Exact Shelf Location Guidance (Aisle, Rack, Shelf, Bin)',
+      'Manufacturer Part Number & Compatible Car Lookup',
+      'Hazardous & Chemical Storage Safety Checklist',
+      'Weight Scale Check for Bulk Screws, Bolts & Hardware',
     ];
   }
 }

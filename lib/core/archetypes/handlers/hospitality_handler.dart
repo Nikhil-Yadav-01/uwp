@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -76,83 +77,16 @@ class HospitalityArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'BAR-001',
-        'name': 'Macallan 18 Year Double Cask Single Malt',
-        'sku': 'BAR-WHS-MAC-18Y',
-        'barcode': '501031401234',
-        'category': 'Scotch & Whiskey',
-        'stock': 12.0,
-        'uom': 'Bottle (750ml)',
-        'unitPrice': 380.00,
-        'customAttributes': {
-          'abv_percent': 43.0,
-          'volume_per_bottle_ml': 750,
-          'standard_pour_ml': 45, // 1.5 oz
-          'vintage': '2024 Release',
-          'origin': 'Speyside, Scotland',
-        },
-      },
-      {
-        'id': 'BAR-002',
-        'name': 'Hendrick\'s Scottish Gin',
-        'sku': 'BAR-GIN-HEN-1L',
-        'barcode': '501031409876',
-        'category': 'Gin & Botanical',
-        'stock': 24.0,
-        'uom': 'Bottle (1L)',
-        'unitPrice': 42.00,
-        'customAttributes': {
-          'abv_percent': 41.4,
-          'volume_per_bottle_ml': 1000,
-          'standard_pour_ml': 60,
-          'origin': 'Girvan, Scotland',
-        },
-      },
-      {
-        'id': 'BAR-003',
-        'name': 'Guinness Extra Stout Draught Keg (50L)',
-        'sku': 'BAR-KEG-GN-50L',
-        'barcode': '501031488888',
-        'category': 'Draught Beer Kegs',
-        'stock': 4.0,
-        'uom': 'Keg (50L)',
-        'unitPrice': 185.00,
-        'customAttributes': {
-          'abv_percent': 4.2,
-          'tap_line_id': 'Tap #4 - Main Bar',
-          'keg_volume_liters': 50,
-          'pints_remaining': 88,
-          'tapped_date': '2026-09-22',
-        },
-      },
-      {
-        'id': 'BAR-004',
-        'name': 'Signature Old Fashioned Cocktail (BOM)',
-        'sku': 'BOM-CKT-OLD-FSH',
-        'barcode': 'BOM0000000001',
-        'category': 'Cocktail Recipe BOM',
-        'stock': 999.0, // Virtual composite
-        'uom': 'Serving',
-        'unitPrice': 18.00,
-        'customAttributes': {
-          'is_recipe_bom': true,
-          'recipe_ingredients': '60ml Bourbon, 10ml Demerara Syrup, 3 Dashes Bitters',
-          'cost_per_serving': 2.85,
-          'margin_percent': 84.2,
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Recipe Bill of Materials (BOM) Auto-Deduction on POS Sale',
-      'Liquor Bottle Pour & Scale Calibration',
-      'Live Draught Keg Flowmeter & Tap Level Tracking',
-      'Shift Spillage, Foam Loss & Comp Bar Log with Manager Signature',
+      'Automatic Cocktail Recipe Deductions on Counter Sale',
+      'Liquor Bottle Pour & Scale Check',
+      'Live Beer Keg & Tap Level Monitoring',
+      'Spillage, Foam Loss & Drink Waste Tracking',
     ];
   }
 }

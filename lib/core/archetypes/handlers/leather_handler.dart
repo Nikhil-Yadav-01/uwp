@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -73,85 +74,16 @@ class LeatherArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'LTH-001',
-        'name': 'Italian Full Grain Veg-Tan Hide',
-        'sku': 'LTH-IT-VGT-01',
-        'barcode': '890123450001',
-        'category': 'Full Grain Leather',
-        'stock': 480.5,
-        'uom': 'sq ft',
-        'unitPrice': 14.50,
-        'customAttributes': {
-          'tannery_origin': 'Tuscany, Italy',
-          'dye_lot': 'LOT-2026-COGNAC',
-          'grade': 'Grade A (Prime)',
-          'thickness_oz': '4.5 - 5.0 oz (1.8mm)',
-          'temper': 'Medium Firm',
-        },
-      },
-      {
-        'id': 'LTH-002',
-        'name': 'Horween Chromexcel Cowhide',
-        'sku': 'LTH-HW-CXL-BLK',
-        'barcode': '890123450002',
-        'category': 'Pull-up Leather',
-        'stock': 620.0,
-        'uom': 'sq ft',
-        'unitPrice': 16.80,
-        'customAttributes': {
-          'tannery_origin': 'Chicago, USA',
-          'dye_lot': 'LOT-CXL-NERO-09',
-          'grade': 'Grade A',
-          'thickness_oz': '5.0 - 5.5 oz (2.0mm)',
-          'temper': 'Supple',
-        },
-      },
-      {
-        'id': 'LTH-003',
-        'name': 'Nubuck Suede Side Roll',
-        'sku': 'LTH-NBK-SD-TN',
-        'barcode': '890123450003',
-        'category': 'Suede & Nubuck',
-        'stock': 310.2,
-        'uom': 'sq ft',
-        'unitPrice': 9.20,
-        'customAttributes': {
-          'tannery_origin': 'Leon, Mexico',
-          'dye_lot': 'LOT-NBK-DESERT-4',
-          'grade': 'Grade B',
-          'thickness_oz': '3.0 - 3.5 oz (1.3mm)',
-          'temper': 'Soft',
-        },
-      },
-      {
-        'id': 'LTH-004',
-        'name': 'Artisan Scrap & Remnant Off-Cuts',
-        'sku': 'LTH-SCRAP-KG-01',
-        'barcode': '890123450004',
-        'category': 'Scrap & Off-cuts',
-        'stock': 145.0,
-        'uom': 'kg',
-        'unitPrice': 6.00,
-        'customAttributes': {
-          'tannery_origin': 'Assorted',
-          'dye_lot': 'MIXED-SCRAP-BIN',
-          'grade': 'Remnant Cuts',
-          'thickness_oz': 'Mixed',
-          'temper': 'Assorted',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Digital Surface Area & Grading Inspection Gate',
-      'Dye-Lot Color Uniformity Matching',
-      'Remnant & Scrap Weight Auto-Deduction',
-      'Roll Splitting & Thickness Stamping',
+      'Leather Area & Quality Inspection at Receiving',
+      'Color Batch & Dye-Lot Matching',
+      'Scrap & Leftover Leather Tracking for Re-use',
+      'Leather Roll Splitting & Thickness Marking',
     ];
   }
 }

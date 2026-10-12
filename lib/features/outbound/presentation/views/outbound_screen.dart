@@ -4,6 +4,7 @@ import '../../../../core/design/app_radii.dart';
 import '../../../../core/design/app_sizes.dart';
 import '../../../../core/design/app_spacing.dart';
 import '../../../../core/design/app_typography.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
@@ -49,6 +50,7 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final archetype = ref.watch(archetypeProvider).archetype;
     final outboundState = ref.watch(outboundNotifierProvider);
@@ -64,47 +66,44 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 600;
+      body: Responsive.constrainedContent(
+        child: SingleChildScrollView(
+          padding: context.isMobile ? AppSpacing.pagePaddingMobile : AppSpacing.pagePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Header with Archetype badge & Quick Actions
+              _buildScreenHeader(context, archetype, isDark, colorScheme),
+              AppGap.h20,
 
-          return SingleChildScrollView(
-            padding: isMobile ? AppSpacing.pagePaddingMobile : AppSpacing.pagePadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Header with Archetype badge & Quick Actions
-                _buildScreenHeader(context, archetype, isDark, isMobile),
-                AppGap.h16,
+              // 2. Unified Interactive Pipeline Stage Bar
+              _buildUnifiedPipelineBar(
+                context,
+                backlogOrders.length,
+                activeWaves.length,
+                packingOrders.length,
+                shippedOrders.length,
+                archetype,
+                isDark,
+                colorScheme,
+              ),
+              AppGap.h16,
 
-                // 2. Unified Interactive Pipeline Stage Bar
-                _buildUnifiedPipelineBar(
-                  context,
-                  backlogCount: backlogOrders.length,
-                  activeWavesCount: activeWaves.length,
-                  packingCount: packingOrders.length,
-                  shippedCount: shippedOrders.length,
-                  isDark: isDark,
-                  isMobile: isMobile,
-                ),
-                AppGap.h16,
+              // 3. Search & Filter Utility Toolbar
+              _buildSearchAndFilterBar(context, isDark, colorScheme),
+              AppGap.h16,
 
-                // 3. Search & Filter Utility Toolbar
-                _buildSearchAndFilterBar(context, isDark, isMobile),
-                AppGap.h16,
-
-                // 4. Active Stage Card List
-                _buildActiveStageContent(
-                  context,
-                  orders: orders,
-                  waves: waves,
-                  activeSession: activeSession,
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          );
-        },
+              // 4. Active Stage Card List
+              _buildActiveStageContent(
+                context,
+                orders: orders,
+                waves: waves,
+                activeSession: activeSession,
+                isDark: isDark,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -112,217 +111,41 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
   // ---------------------------------------------------------------------------
   // 1. SCREEN HEADER
   // ---------------------------------------------------------------------------
-  Widget _buildScreenHeader(BuildContext context, dynamic archetype, bool isDark, bool isMobile) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildScreenHeader(
+    BuildContext context,
+    dynamic archetype,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < AppSpacing.breakpointMobile;
 
-    final titleBlock = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.xs,
-          children: [
-            Text('Outbound Fulfillment & Waves', style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.bold)),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-              decoration: BoxDecoration(
-                color: archetype.brandColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppRadii.r4),
-                border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
-              ),
-              child: Text(
-                archetype.name,
-                style: AppTypography.labelSmall.copyWith(
-                  color: archetype.brandColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-          ],
-        ),
-        AppGap.h4,
-        Text(
-          'Wave picking optimizer, barcode packing verification & shipping for ${archetype.name}',
-          style: AppTypography.bodySmall.copyWith(
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-          ),
-        ),
-      ],
-    );
-
-    final actionButtons = Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.xs,
-      children: [
-        OutlinedButton.icon(
-          onPressed: () => SoFormModal.show(context),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.r8)),
-          ),
-          icon: const Icon(Icons.add_shopping_cart_rounded, size: AppSizes.iconSm),
-          label: const Text('New Sales Order'),
-        ),
-        ElevatedButton.icon(
-          onPressed: () => WaveGeneratorModal.show(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.r8)),
-          ),
-          icon: const Icon(Icons.bolt_rounded, size: AppSizes.iconSm),
-          label: const Text('Dispatch Wave'),
-        ),
-      ],
-    );
-
-    if (isMobile) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          titleBlock,
-          AppGap.h12,
-          actionButtons,
-        ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: titleBlock),
-        AppGap.w16,
-        actionButtons,
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 2. UNIFIED INTERACTIVE PIPELINE STAGE BAR
-  // ---------------------------------------------------------------------------
-  Widget _buildUnifiedPipelineBar(
-    BuildContext context, {
-    required int backlogCount,
-    required int activeWavesCount,
-    required int packingCount,
-    required int shippedCount,
-    required bool isDark,
-    required bool isMobile,
-  }) {
-    final stages = [
-      {
-        'index': 0,
-        'title': 'Orders Backlog',
-        'count': '$backlogCount Orders',
-        'icon': Icons.pending_actions_outlined,
-        'color': AppColors.info,
-      },
-      {
-        'index': 1,
-        'title': 'Wave Routes',
-        'count': '$activeWavesCount Waves',
-        'icon': Icons.alt_route_rounded,
-        'color': const Color(0xFF6366F1), // Indigo
-      },
-      {
-        'index': 2,
-        'title': 'Packing Station',
-        'count': '$packingCount Orders',
-        'icon': Icons.inventory_2_outlined,
-        'color': AppColors.warning,
-      },
-      {
-        'index': 3,
-        'title': 'Shipped Manifests',
-        'count': '$shippedCount Dispatched',
-        'icon': Icons.local_shipping_outlined,
-        'color': AppColors.success,
-      },
-    ];
-
-    if (isMobile) {
-      return Wrap(
-        spacing: AppSpacing.xs + 2,
-        runSpacing: AppSpacing.xs + 2,
-        children: stages.map((stage) {
-          final isSelected = _selectedStageIndex == stage['index'];
-          final color = stage['color'] as Color;
-
-          return SizedBox(
-            width: (MediaQuery.of(context).size.width - 40) / 2,
-            child: _buildStageSegment(stage, isSelected, color, isDark),
-          );
-        }).toList(),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadii.r12),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-      child: Row(
-        children: stages.map((stage) {
-          final isSelected = _selectedStageIndex == stage['index'];
-          final color = stage['color'] as Color;
-
-          return Expanded(
-            child: _buildStageSegment(stage, isSelected, color, isDark),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildStageSegment(Map<String, dynamic> stage, bool isSelected, Color color, bool isDark) {
-    final index = stage['index'] as int;
-
-    return InkWell(
-      onTap: () => _navigateToStage(index),
-      borderRadius: BorderRadius.circular(AppRadii.r8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadii.r8),
-          border: isSelected
-              ? Border.all(color: color, width: 1.5)
-              : Border.all(color: Colors.transparent, width: 1.5),
-        ),
-        child: Column(
+        final titleBlock = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
               children: [
-                Icon(
-                  stage['icon'] as IconData,
-                  size: AppSizes.iconSm,
-                  color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                Text(
+                  'Outbound Fulfillment & Waves',
+                  style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? color.withValues(alpha: 0.2)
-                        : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
+                    color: archetype.brandColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadii.r4),
+                    border: Border.all(color: archetype.brandColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
-                    stage['count'] as String,
+                    archetype.name,
                     style: AppTypography.labelSmall.copyWith(
-                      color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      color: archetype.brandColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -330,17 +153,232 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
             ),
             AppGap.h4,
             Text(
-              stage['title'] as String,
-              style: AppTypography.labelMedium.copyWith(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected
-                    ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight)
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              'Collect items from shelves, scan barcodes into shipping boxes, and dispatch orders',
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
+        );
+
+        final actionButtons = Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => SoFormModal.show(context),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.r8)),
+              ),
+              icon: const Icon(Icons.add_shopping_cart_rounded, size: AppSizes.iconSm),
+              label: const Text('New Customer Order'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => WaveGeneratorModal.show(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.r8)),
+              ),
+              icon: const Icon(Icons.bolt_rounded, size: AppSizes.iconSm),
+              label: const Text('Start Picking Batch'),
+            ),
+          ],
+        );
+
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              titleBlock,
+              AppGap.h12,
+              SizedBox(width: double.infinity, child: actionButtons),
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: titleBlock),
+            AppGap.w16,
+            actionButtons,
+          ],
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. UNIFIED INTERACTIVE PIPELINE STAGE BAR
+  // ---------------------------------------------------------------------------
+  Widget _buildUnifiedPipelineBar(
+    BuildContext context,
+    int backlogCount,
+    int activeWavesCount,
+    int packingCount,
+    int shippedCount,
+    dynamic archetype,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    final stages = [
+      {
+        'stage': '1',
+        'title': '1. Orders to Process',
+        'count': '$backlogCount Orders Waiting',
+        'icon': Icons.pending_actions_outlined,
+        'color': AppColors.info,
+      },
+      {
+        'stage': '2',
+        'title': '2. Gathering from Shelves',
+        'count': '$activeWavesCount Pick Lists',
+        'icon': Icons.alt_route_rounded,
+        'color': archetype.brandColor as Color,
+      },
+      {
+        'stage': '3',
+        'title': '3. Packing & Boxing',
+        'count': '$packingCount Orders',
+        'icon': Icons.inventory_2_outlined,
+        'color': AppColors.warning,
+      },
+      {
+        'stage': '4',
+        'title': '4. Shipped Orders',
+        'count': '$shippedCount Dispatched',
+        'icon': Icons.local_shipping_outlined,
+        'color': AppColors.success,
+      },
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 720;
+
+        if (isNarrow) {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _buildStageTile(0, stages[0], isDark, colorScheme)),
+                  AppGap.w8,
+                  Expanded(child: _buildStageTile(1, stages[1], isDark, colorScheme)),
+                ],
+              ),
+              AppGap.h8,
+              Row(
+                children: [
+                  Expanded(child: _buildStageTile(2, stages[2], isDark, colorScheme)),
+                  AppGap.w8,
+                  Expanded(child: _buildStageTile(3, stages[3], isDark, colorScheme)),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: List.generate(stages.length, (index) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index < stages.length - 1 ? AppSpacing.sm : 0,
+                ),
+                child: _buildStageTile(index, stages[index], isDark, colorScheme),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  Widget _buildStageTile(
+    int index,
+    Map<String, dynamic> data,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    final isSelected = _selectedStageIndex == index;
+    final color = data['color'] as Color;
+
+    return Material(
+      color: isSelected
+          ? color.withValues(alpha: isDark ? 0.20 : 0.12)
+          : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
+      borderRadius: BorderRadius.circular(AppRadii.r12),
+      child: InkWell(
+        onTap: () => _navigateToStage(index),
+        borderRadius: BorderRadius.circular(AppRadii.r12),
+        child: Container(
+          padding: AppPadding.p12,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadii.r12),
+            border: Border.all(
+              color: isSelected ? color : colorScheme.outline,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isSelected ? color : color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    data['icon'] as IconData,
+                    size: 18,
+                    color: isSelected ? Colors.white : color,
+                  ),
+                ),
+              ),
+              AppGap.w8,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'STAGE ${data['stage']}',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 9,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Text(
+                      data['title'] as String,
+                      style: AppTypography.bodyMedium.copyWith(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      data['count'] as String,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: isSelected ? color : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -349,90 +387,93 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
   // ---------------------------------------------------------------------------
   // 3. SEARCH & FILTER TOOLBAR
   // ---------------------------------------------------------------------------
-  Widget _buildSearchAndFilterBar(BuildContext context, bool isDark, bool isMobile) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget _buildSearchAndFilterBar(BuildContext context, bool isDark, ColorScheme colorScheme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
 
-    return Container(
-      padding: AppPadding.p12,
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadii.r8),
-        border: Border.all(color: colorScheme.outline),
-      ),
-      child: isMobile
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search orders, SKU, customer or picker...',
-                    prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 16),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  ),
-                  onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
-                ),
-                AppGap.h8,
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildFilterChip('All Priorities', null),
-                      AppGap.w4,
-                      _buildFilterChip('Standard', OrderPriority.standard),
-                      AppGap.w4,
-                      _buildFilterChip('Rush', OrderPriority.rush),
-                      AppGap.w4,
-                      _buildFilterChip('Emergency', OrderPriority.emergencyCrashCart),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search orders by SO#, customer name, destination, SKU or picker...',
-                      prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded, size: 16),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            )
-                          : null,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        return Container(
+          padding: AppPadding.p12,
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadii.r8),
+            border: Border.all(color: colorScheme.outline),
+          ),
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search orders, SKU, customer or picker...',
+                        prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 16),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
-                  ),
+                    AppGap.h8,
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip('All Priorities', null),
+                          AppGap.w4,
+                          _buildFilterChip('Standard', OrderPriority.standard),
+                          AppGap.w4,
+                          _buildFilterChip('Rush', OrderPriority.rush),
+                          AppGap.w4,
+                          _buildFilterChip('Emergency', OrderPriority.emergencyCrashCart),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search orders by SO#, customer name, destination, SKU or picker...',
+                          prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSm),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                )
+                              : null,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+                      ),
+                    ),
+                    AppGap.w12,
+                    _buildFilterChip('All', null),
+                    AppGap.w4,
+                    _buildFilterChip('Standard', OrderPriority.standard),
+                    AppGap.w4,
+                    _buildFilterChip('Rush', OrderPriority.rush),
+                    AppGap.w4,
+                    _buildFilterChip('Emergency', OrderPriority.emergencyCrashCart),
+                  ],
                 ),
-                AppGap.w12,
-                _buildFilterChip('All', null),
-                AppGap.w4,
-                _buildFilterChip('Standard', OrderPriority.standard),
-                AppGap.w4,
-                _buildFilterChip('Rush', OrderPriority.rush),
-                AppGap.w4,
-                _buildFilterChip('Emergency', OrderPriority.emergencyCrashCart),
-              ],
-            ),
+        );
+      },
     );
   }
 

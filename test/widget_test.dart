@@ -19,7 +19,8 @@ void main() {
 
     // Verify Brand Logo and Core App Elements render
     expect(find.text('RUDRAKSHA'), findsWidgets);
-    expect(find.text('PROTOTYPE SHOWCASE'), findsOneWidget);
-    expect(find.text('Live Operational Metrics'), findsOneWidget);
+    expect(find.text('Universal Warehouse Suite'), findsOneWidget);
+    expect(find.text("TODAY'S INWARD"), findsOneWidget);
+    expect(find.text('Leather & Textiles'), findsWidgets);
   });
 }

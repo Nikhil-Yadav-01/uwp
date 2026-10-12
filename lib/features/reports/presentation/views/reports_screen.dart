@@ -8,6 +8,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/app_formatters.dart';
 import '../../../archetypes/presentation/controllers/archetype_controller.dart';
+import '../../../../core/data/datasources/sample_data_source.dart';
+import '../../../inbound/domain/models/purchase_order.dart';
+import '../../../outbound/domain/models/sales_order.dart';
 import '../controllers/reports_controller.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -74,7 +77,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         spacing: AppSpacing.sm,
                         children: [
-                          Text('Reports & BI Analytics', style: AppTypography.headlineLarge),
+                          Text('Reports & Business Insights', style: AppTypography.headlineLarge),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
@@ -90,7 +93,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       ),
                       AppGap.h4,
                       Text(
-                        'Generate detailed inventory, purchase, sales & stock audit reports with CSV/PDF exports',
+                        'Easy-to-read reports on current stock value, supplier receipts, and customer shipments',
                         style: AppTypography.bodySmall.copyWith(
                           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                         ),
@@ -268,7 +271,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Inventory Stock & Valuation Report (01-Sep-2026 - 30-Sep-2026)', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
+          Text('Current Stock & Total Value Report (01-Sep-2026 - 30-Sep-2026)', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
           AppGap.h16,
           LayoutBuilder(
             builder: (context, constraints) {
@@ -402,12 +405,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildPurchaseInboundReport(ColorScheme colorScheme, bool isDark) {
-    final samplePos = [
-      {'po': 'PO-2026-0012', 'vendor': 'ABC Traders', 'ordered': 150, 'received': 148, 'damaged': 2, 'cost': '${AppFormatters.currencySymbol}14,800', 'status': 'Received'},
-      {'po': 'PO-2026-0011', 'vendor': 'Global Suppliers', 'ordered': 80, 'received': 80, 'damaged': 0, 'cost': '${AppFormatters.currencySymbol}6,400', 'status': 'Received'},
-      {'po': 'PO-2026-0010', 'vendor': 'Tech Corporation', 'ordered': 50, 'received': 30, 'damaged': 1, 'cost': '${AppFormatters.currencySymbol}28,500', 'status': 'Partial Intake'},
-      {'po': 'PO-2026-0009', 'vendor': 'Toscana Leather', 'ordered': 120, 'received': 120, 'damaged': 0, 'cost': '${AppFormatters.currencySymbol}18,000', 'status': 'Received'},
-    ];
+    final samplePos = SampleDataSource.getPurchaseOrders().map((po) {
+      final totalOrdered = po.totalOrderedUnits.toInt();
+      final totalReceived = po.totalReceivedUnits.toInt();
+      final totalDamaged = 0;
+      final statusLabel = po.status.label;
+      return {
+        'po': po.poNumber,
+        'vendor': po.vendorName,
+        'ordered': totalOrdered,
+        'received': totalReceived,
+        'damaged': totalDamaged,
+        'cost': AppFormatters.currency(po.totalAmount),
+        'status': statusLabel,
+      };
+    }).toList();
 
     return Container(
       padding: AppPadding.p20,
@@ -419,7 +431,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Inbound Purchase & GRN Fulfillment Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
+          Text('Supplier Deliveries & Receiving Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
           AppGap.h16,
           LayoutBuilder(
             builder: (context, constraints) {
@@ -532,12 +544,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildSalesOutboundReport(ColorScheme colorScheme, bool isDark) {
-    final sampleSos = [
-      {'so': 'SO-0456', 'customer': 'XYZ Retailers', 'destination': 'Lower Parel, Mumbai', 'qty': 5, 'courier': 'DTDC Express', 'status': 'Dispatched'},
-      {'so': 'SO-0457', 'customer': 'Amazon FC BLR', 'destination': 'Devanahalli, Bangalore', 'qty': 24, 'courier': 'Blue Dart', 'status': 'Shipped'},
-      {'so': 'SO-0458', 'customer': 'Flipkart Logistics', 'destination': 'Hosur Road, Bangalore', 'qty': 12, 'courier': 'Delhivery', 'status': 'In Transit'},
-      {'so': 'SO-0459', 'customer': 'Apollo Hospital', 'destination': 'Greams Rd, Chennai', 'qty': 8, 'courier': 'FedEx Priority', 'status': 'Delivered'},
-    ];
+    final sampleSos = SampleDataSource.getSalesOrders().map((so) {
+      final totalQty = so.totalRequestedUnits.toInt();
+      final statusLabel = so.status.label;
+      return {
+        'so': so.soNumber,
+        'customer': so.customerName,
+        'destination': so.destinationWardOrAddress,
+        'qty': totalQty,
+        'courier': 'Express Delivery',
+        'status': statusLabel,
+      };
+    }).toList();
 
     return Container(
       padding: AppPadding.p20,
@@ -549,7 +567,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Outbound Sales & Shipment Dispatch Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
+          Text('Customer Orders & Shipping Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
           AppGap.h16,
           LayoutBuilder(
             builder: (context, constraints) {
@@ -664,7 +682,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Stock Movement & Aging Analysis Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
+          Text('Stock Movement & Freshness (Aging) Report', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.bold)),
           AppGap.h16,
           LayoutBuilder(
             builder: (context, constraints) {

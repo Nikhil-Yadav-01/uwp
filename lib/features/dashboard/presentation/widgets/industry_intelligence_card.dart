@@ -86,7 +86,7 @@ class IndustryIntelligenceCard extends ConsumerWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
-                              'Vertical Intelligence: ${archetype.name}',
+                              'Industry Features: ${archetype.name}',
                               style: AppTypography.h3,
                             ),
                             Container(
@@ -96,7 +96,7 @@ class IndustryIntelligenceCard extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'UOM: ${archetype.primaryUom.toUpperCase()}',
+                                'Unit: ${archetype.primaryUom.toUpperCase()}',
                                 style: AppTypography.caption.copyWith(
                                   color: archetype.brandColor,
                                   fontWeight: FontWeight.bold,
@@ -131,7 +131,7 @@ class IndustryIntelligenceCard extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  'SPECIALIZED LOGIC ACTIVE',
+                  'TAILORED FOR THIS INDUSTRY',
                   style: AppTypography.caption.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 10,

@@ -11,13 +11,13 @@ extension ReportTypeExtension on ReportType {
   String get label {
     switch (this) {
       case ReportType.inventoryStock:
-        return 'Inventory Valuation & Stock';
+        return 'Current Stock & Total Value';
       case ReportType.purchaseInbound:
-        return 'Inbound Purchase & GRN';
+        return 'Supplier Deliveries & Receipts';
       case ReportType.salesOutbound:
-        return 'Outbound Sales & Dispatch';
+        return 'Customer Orders & Shipments';
       case ReportType.stockAgingAudit:
-        return 'Stock Movement & Audit';
+        return 'Stock Movement & Freshness (Aging)';
     }
   }
 }

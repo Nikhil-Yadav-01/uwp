@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -79,87 +80,17 @@ class HealthcareArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'MED-001',
-        'name': 'Morphine Sulfate Injection 10mg/mL (1mL Ampoule)',
-        'sku': 'MED-RX-MPH-10MG',
-        'barcode': '030074123456',
-        'category': 'Controlled Substances (Rx)',
-        'stock': 150.0,
-        'uom': 'Ampoules',
-        'unitPrice': 18.50,
-        'customAttributes': {
-          'is_controlled': true,
-          'schedule_class': 'Schedule II (High Control)',
-          'lot_no': 'LOT-MPH-202608',
-          'expiry_date': '2027-08-31',
-          'storage_location': 'Narcotics Safe (Vault A-01)',
-          'dual_signoff_required': true,
-        },
-      },
-      {
-        'id': 'MED-002',
-        'name': 'mRNA Quadrivalent Vaccine Vials (6 Doses/Vial)',
-        'sku': 'MED-VAC-MRNA-QUAD',
-        'barcode': '030074987654',
-        'category': 'Vaccines & Biologics',
-        'stock': 60.0,
-        'uom': 'Vials (360 Doses)',
-        'unitPrice': 115.00,
-        'customAttributes': {
-          'is_controlled': false,
-          'lot_no': 'VAC-LOT-9921B',
-          'expiry_date': '2026-12-15',
-          'storage_temperature': 'Ultra-Cold Freezer (-80°C to -60°C)',
-          'allocated_ward': 'Immunization Clinic',
-        },
-      },
-      {
-        'id': 'MED-003',
-        'name': 'Sterile Surgical Suture Kit 3-0 Silk (Box of 36)',
-        'sku': 'MED-SUR-SUT-30',
-        'barcode': '030074888888',
-        'category': 'Surgical & Wound Care',
-        'stock': 40.0,
-        'uom': 'Boxes',
-        'unitPrice': 48.00,
-        'customAttributes': {
-          'is_controlled': false,
-          'lot_no': 'SUT-SILK-882',
-          'sterilization_method': 'Ethylene Oxide (EO Gas)',
-          'sterile_expiry_date': '2028-05-01',
-          'storage_location': 'OR Supply Room 2B',
-        },
-      },
-      {
-        'id': 'MED-004',
-        'name': 'Emergency Crash Cart Ampoule Kit (Code Blue Ready)',
-        'sku': 'MED-EMG-CRASH-KIT',
-        'barcode': '030074777777',
-        'category': 'Emergency Par Kits',
-        'stock': 8.0,
-        'uom': 'Sealed Kits',
-        'unitPrice': 320.00,
-        'customAttributes': {
-          'is_controlled': true,
-          'tamper_seal_id': 'SEAL-RED-90812',
-          'par_level_compliance': '100% Complete',
-          'next_mandatory_audit': '2026-10-01 (7 Days)',
-          'allocated_ward': 'ICU / Emergency Trauma Bay',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Dual-Nurse Badge Scan for Schedule II Controlled Drug Dispensing',
-      'Crash Cart Par-Level Replenishment & Tamper Seal Logging',
-      'Patient MRN & Hospital Ward Direct Issuance Billing',
-      'Vaccine Ultra-Cold Chain Excursion Compliance Audit',
-      'Autoclave Sterile Batch & Surgical Instrument Expiry Tracking',
+      'Two-Nurse Sign-off for Locked & Controlled Medicines',
+      'Emergency Hospital Crash Cart Restocking & Tamper Seal Check',
+      'Patient & Hospital Ward Direct Issuance Record',
+      'Vaccine Ultra-Cold Storage Temperature Audit',
+      'Surgical Instrument Sterilization & Expiry Tracking',
     ];
   }
 }

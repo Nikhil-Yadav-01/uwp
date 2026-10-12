@@ -67,7 +67,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                       ),
                       AppGap.h4,
                       Text(
-                        'Polymorphic schema, wrappers & variants adapting to ${archetype.name}',
+                        'All inventory items, sizes, units, and details for ${archetype.name}',
                         style: AppTypography.bodySmall.copyWith(
                           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                         ),
@@ -99,7 +99,7 @@ class _ProductsCatalogScreenState extends ConsumerState<ProductsCatalogScreen> {
                           ),
                           AppGap.h4,
                           Text(
-                            'Polymorphic schema, wrappers & variants adapting to ${archetype.name}',
+                            'All inventory items, sizes, units, and details for ${archetype.name}',
                             style: AppTypography.bodySmall.copyWith(
                               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                             ),

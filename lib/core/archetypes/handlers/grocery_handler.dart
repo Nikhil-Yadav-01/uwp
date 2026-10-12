@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -76,82 +77,16 @@ class GroceryArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'GRO-001',
-        'name': 'Organic Hass Avocados (Grade 1)',
-        'sku': 'GRO-AVO-HASS-40',
-        'barcode': '890200001001',
-        'category': 'Fresh Produce',
-        'stock': 120.0,
-        'uom': 'Carton (40ct)',
-        'unitPrice': 38.00,
-        'customAttributes': {
-          'batch_no': 'BATCH-AVO-20260920',
-          'harvest_date': '2026-09-18',
-          'expiry_date': '2026-09-29 (4 Days)',
-          'storage_zone': 'Chilled (+4°C)',
-          'origin': 'Michoacán, Mexico',
-        },
-      },
-      {
-        'id': 'GRO-002',
-        'name': 'Pasteurized Whole Milk 3.8% (1L)',
-        'sku': 'GRO-DAIRY-MLK-1L',
-        'barcode': '890200001002',
-        'category': 'Dairy & Eggs',
-        'stock': 850.0,
-        'uom': 'Bottle (1L)',
-        'unitPrice': 1.85,
-        'customAttributes': {
-          'batch_no': 'MLK-LOT-984',
-          'expiry_date': '2026-09-28 (3 Days)',
-          'storage_zone': 'Cold Walk-in (+2°C)',
-          'origin': 'Local Farm Collective',
-        },
-      },
-      {
-        'id': 'GRO-003',
-        'name': 'Wild Caught Atlantic Salmon Fillet',
-        'sku': 'GRO-SEA-SLM-KG',
-        'barcode': '890200001003',
-        'category': 'Seafood & Meat',
-        'stock': 45.5,
-        'uom': 'kg',
-        'unitPrice': 24.50,
-        'customAttributes': {
-          'batch_no': 'SEA-SLM-NOR-441',
-          'expiry_date': '2026-09-27 (2 Days)',
-          'storage_zone': 'Deep Freeze (-20°C)',
-          'origin': 'Norway',
-        },
-      },
-      {
-        'id': 'GRO-004',
-        'name': 'Artisan Sourdough Loaf (750g)',
-        'sku': 'GRO-BAK-SRD-750',
-        'barcode': '890200001004',
-        'category': 'Bakery',
-        'stock': 65.0,
-        'uom': 'Loaf',
-        'unitPrice': 4.20,
-        'customAttributes': {
-          'batch_no': 'BAK-SRD-DAILY-01',
-          'expiry_date': '2026-09-26 (Tomorrow)',
-          'storage_zone': 'Ambient Shelf',
-          'origin': 'In-house Bakery',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Strict FEFO (First-Expired, First-Out) Pick Allocation',
-      'Cold-Chain BLE Sensor Temperature Logging',
-      'Dynamic Shelf-Life Markdown Pricing Engine',
-      'Zero-Waste Spoilage & Donation Staging',
+      'Sell Oldest Expiry First (FEFO) to Prevent Waste',
+      'Cold-Storage Temperature & Freshness Sensor Tracking',
+      'Automatic Discounts for Approaching Expiry Dates',
+      'Zero-Waste Food Donation & Safe Disposal Tracking',
     ];
   }
 }

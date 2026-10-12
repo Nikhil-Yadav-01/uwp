@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -20,42 +21,50 @@ class DashboardVitalSignsRibbon extends ConsumerWidget {
       _VitalSignData(
         title: "TODAY'S INWARD",
         value: '${numberFormatter.format(stats.todayInwardUnits)} Units',
-        subtitle: '${stats.todayInwardOrders} Purchase Orders Received',
+        subtitle: '${stats.todayInwardOrders} Deliveries Checked In',
         trendText: '+12.4% vs y\'day',
         isPositiveTrend: true,
-        metricPill: '${stats.receivingAccuracy}% QC Pass',
+        metricPill: '${stats.receivingAccuracy}% Passed Quality Check',
         icon: Icons.input_rounded,
         iconColor: AppColors.info,
+        route: '/inbound',
+        tooltip: 'View Inbound Receiving, POs & Putaway Tasks',
       ),
       _VitalSignData(
         title: "TODAY'S OUTWARD",
         value: '${numberFormatter.format(stats.todayOutwardUnits)} Units',
-        subtitle: '${stats.todayOutwardOrders} Orders Fulfilled',
+        subtitle: '${stats.todayOutwardOrders} Customer Orders Shipped',
         trendText: '+8.1% vs target',
         isPositiveTrend: true,
-        metricPill: '42m Cycle Time',
+        metricPill: '42m Packing Speed',
         icon: Icons.output_rounded,
         iconColor: AppColors.success,
+        route: '/outbound',
+        tooltip: 'View Outbound Orders, Wave Picking & Shipping',
       ),
       _VitalSignData(
         title: "TOTAL INVENTORY VALUE",
         value: currencyFormatter.format(stats.totalValuation),
-        subtitle: '${numberFormatter.format(stats.totalAvailableStockUnits)} Units • ${numberFormatter.format(stats.totalActiveSkus)} SKUs',
+        subtitle: '${numberFormatter.format(stats.totalAvailableStockUnits)} Total Units • ${numberFormatter.format(stats.totalActiveSkus)} Products',
         trendText: 'Healthy Depth',
         isPositiveTrend: true,
         metricPill: '${stats.totalWarehouses} Warehouses',
         icon: Icons.inventory_2_rounded,
         iconColor: AppColors.primary,
+        route: '/products',
+        tooltip: 'View Master Inventory Catalog & Products',
       ),
       _VitalSignData(
-        title: "FULFILLMENT SLA (OTIF)",
+        title: "ON-TIME DELIVERY RATE",
         value: '${stats.otifRate}%',
-        subtitle: 'On-Time In-Full Dispatch Rate',
+        subtitle: 'Orders Delivered On-Time & Complete',
         trendText: 'Target: 95%',
         isPositiveTrend: true,
         metricPill: '99.4% Accuracy',
         icon: Icons.verified_rounded,
         iconColor: AppColors.secondary,
+        route: '/reports',
+        tooltip: 'View Reports & Delivery Insights',
       ),
     ];
 
@@ -82,192 +91,220 @@ class DashboardVitalSignsRibbon extends ConsumerWidget {
             childAspectRatio: childAspectRatio,
           ),
           itemBuilder: (context, index) {
-            return _buildVitalCard(cards[index], isDark);
+            return _buildVitalCard(context, cards[index], isDark);
           },
         );
       },
     );
   }
 
-  Widget _buildVitalCard(_VitalSignData data, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  AppColors.darkCard,
-                  Color.alphaBlend(data.iconColor.withValues(alpha: 0.06), const Color(0xFF0F172A)),
-                ]
-              : [
-                  Colors.white,
-                  Color.alphaBlend(data.iconColor.withValues(alpha: 0.04), const Color(0xFFF8FAFC)),
-                ],
-        ),
+  Widget _buildVitalCard(BuildContext context, _VitalSignData data, bool isDark) {
+    return Tooltip(
+      message: data.tooltip,
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(
-          color: isDark
-              ? data.iconColor.withValues(alpha: 0.22)
-              : data.iconColor.withValues(alpha: 0.18),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: data.iconColor.withValues(alpha: isDark ? 0.08 : 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Header: Title + Icon
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  data.title,
-                  style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.9,
-                    fontSize: 10.5,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+        child: InkWell(
+          onTap: () => context.go(data.route),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          hoverColor: data.iconColor.withValues(alpha: 0.05),
+          splashColor: data.iconColor.withValues(alpha: 0.12),
+          mouseCursor: SystemMouseCursors.click,
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        AppColors.darkCard,
+                        Color.alphaBlend(data.iconColor.withValues(alpha: 0.06), const Color(0xFF0F172A)),
+                      ]
+                    : [
+                        Colors.white,
+                        Color.alphaBlend(data.iconColor.withValues(alpha: 0.04), const Color(0xFFF8FAFC)),
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(
+                color: isDark
+                    ? data.iconColor.withValues(alpha: 0.22)
+                    : data.iconColor.withValues(alpha: 0.18),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: data.iconColor.withValues(alpha: isDark ? 0.08 : 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Header: Title + Arrow indicator + Icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              data.title,
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.9,
+                                fontSize: 10.5,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 11,
+                            color: isDark
+                                ? AppColors.textSecondaryDark.withValues(alpha: 0.6)
+                                : AppColors.textSecondaryLight.withValues(alpha: 0.6),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: data.iconColor.withValues(alpha: isDark ? 0.16 : 0.12),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        border: Border.all(color: data.iconColor.withValues(alpha: 0.25)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: data.iconColor.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(data.icon, size: 16, color: data.iconColor),
+                    ),
+                  ],
+                ),
+
+                // Main Metric Value
+                Text(
+                  data.value,
+                  style: AppTypography.h1.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 23,
+                    letterSpacing: -0.5,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: data.iconColor.withValues(alpha: isDark ? 0.16 : 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                  border: Border.all(color: data.iconColor.withValues(alpha: 0.25)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: data.iconColor.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+
+                // Subtitle
+                Text(
+                  data.subtitle,
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: Icon(data.icon, size: 16, color: data.iconColor),
-              ),
-            ],
-          ),
 
-          // Main Metric Value
-          Text(
-            data.value,
-            style: AppTypography.h1.copyWith(
-              fontWeight: FontWeight.w800,
-              fontSize: 23,
-              letterSpacing: -0.5,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          // Subtitle
-          Text(
-            data.subtitle,
-            style: AppTypography.caption.copyWith(
-              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          Container(
-            height: 1,
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  data.iconColor.withValues(alpha: 0.3),
-                  isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-
-          // Bottom Pills
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: data.isPositiveTrend
-                      ? AppColors.success.withValues(alpha: 0.12)
-                      : AppColors.error.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: data.isPositiveTrend
-                        ? AppColors.success.withValues(alpha: 0.3)
-                        : AppColors.error.withValues(alpha: 0.3),
+                Container(
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        data.iconColor.withValues(alpha: 0.3),
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+
+                // Bottom Pills
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(
-                      data.isPositiveTrend ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                      size: 13,
-                      color: data.isPositiveTrend ? AppColors.success : AppColors.error,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: data.isPositiveTrend
+                            ? AppColors.success.withValues(alpha: 0.12)
+                            : AppColors.error.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: data.isPositiveTrend
+                              ? AppColors.success.withValues(alpha: 0.3)
+                              : AppColors.error.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            data.isPositiveTrend ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                            size: 13,
+                            color: data.isPositiveTrend ? AppColors.success : AppColors.error,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            data.trendText,
+                            style: AppTypography.caption.copyWith(
+                              color: data.isPositiveTrend ? AppColors.success : AppColors.error,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      data.trendText,
-                      style: AppTypography.caption.copyWith(
-                        color: data.isPositiveTrend ? AppColors.success : AppColors.error,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkSurface.withValues(alpha: 0.5)
+                              : AppColors.lightSurface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                          ),
+                        ),
+                        child: Text(
+                          data.metricPill,
+                          style: AppTypography.caption.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkSurface.withValues(alpha: 0.5)
-                        : AppColors.lightSurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Text(
-                    data.metricPill,
-                    style: AppTypography.caption.copyWith(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 10,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -282,6 +319,8 @@ class _VitalSignData {
   final String metricPill;
   final IconData icon;
   final Color iconColor;
+  final String route;
+  final String tooltip;
 
   const _VitalSignData({
     required this.title,
@@ -292,5 +331,7 @@ class _VitalSignData {
     required this.metricPill,
     required this.icon,
     required this.iconColor,
+    required this.route,
+    required this.tooltip,
   });
 }

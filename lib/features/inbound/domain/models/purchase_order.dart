@@ -20,23 +20,23 @@ extension InboundStatusExtension on InboundStatus {
       case InboundStatus.draft:
         return 'Draft';
       case InboundStatus.approved:
-        return 'Approved';
+        return 'Approved (Waiting for Supplier)';
       case InboundStatus.inTransit:
-        return 'In Transit';
+        return 'On the Way from Supplier';
       case InboundStatus.atDock:
-        return 'At Dock';
+        return 'Arrived at Warehouse';
       case InboundStatus.receiving:
-        return 'Receiving';
+        return 'Unloading & Counting';
       case InboundStatus.qcPending:
-        return 'QC Pending';
+        return 'Quality Check Pending';
       case InboundStatus.qcPassed:
-        return 'QC Passed';
+        return 'Passed Quality Check';
       case InboundStatus.qcFailed:
-        return 'QC Failed';
+        return 'Failed Quality Check';
       case InboundStatus.putawayReady:
-        return 'Putaway Ready';
+        return 'Ready to Put on Shelves';
       case InboundStatus.completed:
-        return 'Completed';
+        return 'Stored on Shelves (Completed)';
       case InboundStatus.cancelled:
         return 'Cancelled';
     }

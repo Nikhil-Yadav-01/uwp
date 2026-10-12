@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/datasources/sample_data_source.dart';
 import '../contracts/archetype_feature_handler.dart';
 import '../models/archetype_definition.dart';
 import '../../theme/app_colors.dart';
@@ -76,68 +77,16 @@ class FashionArchetypeHandler implements IArchetypeFeatureHandler {
 
   @override
   List<Map<String, dynamic>> getDemoProducts() {
-    return [
-      {
-        'id': 'FSH-001',
-        'name': 'Italian Merino Wool Turtleneck Sweater',
-        'sku': 'FSH-SWT-MER-BLK-M',
-        'barcode': '789123450001',
-        'category': 'Knitwear',
-        'stock': 45.0,
-        'uom': 'pcs',
-        'unitPrice': 149.00,
-        'customAttributes': {
-          'season': 'FW26',
-          'size': 'M',
-          'color': 'Midnight Black',
-          'fabric_composition': '100% Extra-fine Merino Wool',
-          'gender': 'Unisex',
-        },
-      },
-      {
-        'id': 'FSH-002',
-        'name': 'Selvedge Raw Denim Jeans (14oz)',
-        'sku': 'FSH-JNS-SLV-3232',
-        'barcode': '789123450002',
-        'category': 'Denim & Pants',
-        'stock': 82.0,
-        'uom': 'pcs',
-        'unitPrice': 185.00,
-        'customAttributes': {
-          'season': 'Core Permanent',
-          'size': '32x32',
-          'color': 'Deep Indigo',
-          'fabric_composition': '100% Japanese Kurabo Cotton',
-          'fit': 'Slim Tapered',
-        },
-      },
-      {
-        'id': 'FSH-003',
-        'name': 'Waterproof Tech-Shell Parka',
-        'sku': 'FSH-JKT-TCH-OLV-L',
-        'barcode': '789123450003',
-        'category': 'Outerwear',
-        'stock': 28.0,
-        'uom': 'pcs',
-        'unitPrice': 295.00,
-        'customAttributes': {
-          'season': 'FW26',
-          'size': 'L',
-          'color': 'Olive Drab',
-          'fabric_composition': '3-Layer Gore-Tex Pro',
-          'fit': 'Relaxed Modular',
-        },
-      },
-    ];
+    return SampleDataSource.getDemoProductMaps(archetypeType);
   }
 
   @override
   List<String> getSpecializedWorkflows() {
     return [
-      'Multi-Dimensional Matrix Entry Grid (Size × Color × Fit)',
-      'High-Speed Thermal Hangtag & Garment Barcode Printing',
-      'Seasonal Stock Rebalance & Cross-Dock Distribution',
-      'Return Staging & Re-tagging Inspection Workflow',
+      'Quick Matrix Grid for Clothes (Size × Color × Fit)',
+      'Clothing Hangtag & Garment Barcode Printing',
+      'Seasonal Stock Rebalance Across Stores',
+      'Customer Returns Inspection & Re-tagging',
     ];
   }
 }

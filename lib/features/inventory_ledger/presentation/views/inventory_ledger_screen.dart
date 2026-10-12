@@ -80,12 +80,12 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Stock Movement Ledger & Audit Trail',
+          'Stock Movement & History',
           style: AppTypography.headlineLarge,
         ),
         AppGap.h4,
         Text(
-          'Immutable inventory transactions, multi-depot transfers & reconciliation for ${archetype.name}',
+          'Track every item movement, warehouse transfers, and count corrections',
           style: AppTypography.bodyMedium.copyWith(
             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
           ),
@@ -103,7 +103,7 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           ),
           icon: const Icon(Icons.tune_rounded, size: 18),
-          label: const Text('New Adjustment'),
+          label: const Text('Correct Count'),
         ),
         FilledButton.icon(
           onPressed: () => StockTransferModal.show(context),
@@ -113,7 +113,7 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           ),
           icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-          label: const Text('New WH Transfer'),
+          label: const Text('Transfer Stock'),
         ),
       ],
     );
@@ -150,29 +150,29 @@ class _InventoryLedgerScreenState extends ConsumerState<InventoryLedgerScreen> {
 
     final categories = [
       _LedgerCategory(
-        title: 'Stock Summary & Balances',
+        title: 'Current Stock Levels',
         count: ref.watch(archetypeProvider).products.length,
         icon: Icons.inventory_2_outlined,
-        subtitle: 'Available, Reserved & Damaged',
+        subtitle: 'Available vs reserved or damaged',
       ),
       _LedgerCategory(
-        title: 'Stock Ledger Transactions',
+        title: 'Item Movement History',
         count: ledgerState.transactions.length,
         icon: Icons.receipt_long_outlined,
-        subtitle: 'Audit trail of movements',
+        subtitle: 'Record of every item moved',
       ),
       _LedgerCategory(
-        title: 'Inter-Warehouse Transfers',
+        title: 'Warehouse Transfers',
         count: ledgerState.transfers.length,
-        badgeText: inTransitCount > 0 ? '$inTransitCount in-transit' : null,
+        badgeText: inTransitCount > 0 ? '$inTransitCount on the road' : null,
         icon: Icons.swap_horiz_rounded,
-        subtitle: 'Multi-depot dispatches',
+        subtitle: 'Moving stock between buildings',
       ),
       _LedgerCategory(
-        title: 'Stock Adjustments',
+        title: 'Count Corrections',
         count: ledgerState.adjustments.length,
         icon: Icons.tune_rounded,
-        subtitle: 'Cycle counts & variances',
+        subtitle: 'Fix counts after stocktaking',
       ),
     ];
 
